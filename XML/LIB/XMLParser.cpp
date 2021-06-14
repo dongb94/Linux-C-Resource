@@ -6,7 +6,7 @@ XMLParser::~XMLParser(){}
 int XMLParser::SetXmlPath(char* targetXml)
 {
 	memcpy(FILE_PATH + DIR_PATH_LEN, targetXml, strlen(targetXml));
-	printf("=== XML Path : %s\n", FILE_PATH);
+	// printf("=== XML Path : %s\n", FILE_PATH);
 	return OpenXmlFile(FILE_PATH);
 }
 
@@ -63,7 +63,7 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 
 inline int XMLParser::ReadNext()
 {
-	printf(">>> read count : %d / %d\n", m_readCount, m_fileLength);
+	// printf(">>> read count : %d / %d\n", m_readCount, m_fileLength);
 	if(m_readCount >= m_fileLength) return -1; // end of file
 
 	int readSize;
@@ -121,7 +121,7 @@ int XMLParser::GetNextValueGroup(Value** ppValueGroup)
 					}
 					else if(m_syntexlevel == 0)
 					{
-						printf("XML Read Complete\n");
+						// printf("XML Read Complete\n");
 						return -1;
 					}
 				}	break;

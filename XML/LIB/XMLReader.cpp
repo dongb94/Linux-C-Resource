@@ -94,7 +94,7 @@ int XMLReader::ConvertToInt(char* string, long long* result)
 		}
 		else
 		{
-			if(isMinus) result = -result;
+			if(isMinus) *result = -(*result);
 			return count;
 		}
 
@@ -237,7 +237,7 @@ int XMLReader::ConvertToFloatVecter(char* string, float* x, float* y, float* z)
 	{
 		char c = string[offset];
 		if(c ==',') break;
-		
+
 		if(c >= '0' && c <= '9');
 		else if(c=='.' || c==' ' || c=='-');
 		else // wrong input string
@@ -247,4 +247,43 @@ int XMLReader::ConvertToFloatVecter(char* string, float* x, float* y, float* z)
 	}
 
 	ConvertToFloat((char*)(&string[offset]), z);
+}
+
+int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, int maxSize)
+{
+	int startOffset = 0;
+	int offset = 0;
+	int count = 0;
+	while(count < maxSize)
+	{
+		char c = string[offset];
+		if(c=='\0')
+		{
+			if(arraySize < 5)
+			{
+				*((char*)array+(count * arraySize)) = atoi(&string[startOffset]);
+			}
+			else
+			{
+				*((char*)array+(count * arraySize)) = atoll(&string[startOffset]);
+			}
+			break;
+		}
+		else if(c==',') {
+			string[offset] = '\0';
+
+			if(arraySize < 5)
+			{
+				*((char*)array+(count * arraySize)) = atoi(&string[startOffset]);
+			}
+			else
+			{
+				*((char*)array+(count * arraySize)) = atoll(&string[startOffset]);
+			}
+			count++;
+			startOffset = offset+1;
+		}
+
+		offset++;
+	}
 }

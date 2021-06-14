@@ -1,15 +1,19 @@
 #ifndef __XML_PARSER__
 #define __XML_PARSER__
 
+#ifndef MAKE_SHM_KEY_FROM_INDEX
 #define MAKE_SHM_KEY_FROM_INDEX(index) (((unsigned long long)index)<<48)+1
+#endif
 
-#define XML_READ_BUFFER_SIZE	500
+#define XML_READ_BUFFER_SIZE	65535
 #define XML_MAX_NUMBER_OF_VALUE	50
 
 #define MONSTER_BASE_DATA_XML_PATH "./MonsterData.xml"
 #define MONSTER_PLACEMENT_DATA_XML_PATH "./MonsterPlacementData.xml"
 #define MAP_LIST_DATA_XML_PATH "./MapListData.xml"
 #define MAP_DATA_XML_PATH "./MapData.xml"
+#define DROP_DATA_XML_PATH "./DropData.xml"
+#define DROP_SET_DATA_XML_PATH "./DropSetData.xml"
 extern char FILE_PATH[512];
 extern short DIR_PATH_LEN;
 
