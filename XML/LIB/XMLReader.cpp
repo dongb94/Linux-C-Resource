@@ -261,7 +261,6 @@ int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, i
 		char c = string[offset];
 		if(c=='\0')
 		{
-			array = (char*)array+(count * arraySize);
 			if(arraySize < 5)
 			{
 				*((int *)array) = atoi(&string[startOffset]);
@@ -277,7 +276,6 @@ int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, i
 		else if(c==',') {
 			string[offset] = '\0';
 
-			array = (char*)array+(count * arraySize);
 			if(arraySize < 5)
 			{
 				*((int *)array) = atoi(&string[startOffset]);
@@ -288,6 +286,8 @@ int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, i
 			{
 				*((long long *)array) = atoll(&string[startOffset]);
 			}
+
+			array = (char*)array+(arraySize);
 			count++;
 			startOffset = offset+1;
 		}
