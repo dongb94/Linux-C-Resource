@@ -38,18 +38,23 @@ private:
 
 	void PrintTree(RBTreeNode *root, int depth = 0);
 
-	int Lotate(RBTreeNode *item);
+	int Rotate(RBTreeNode *item);
 
-	void RightLotate(RBTreeNode *item);
-	void LeftLotate(RBTreeNode *item);
+	void RightRotate(RBTreeNode *item);
+	void LeftRotate(RBTreeNode *item);
 
 	void Restructuring(RBTreeNode *item);
 	void CheckTree(RBTreeNode *item);
 
 	void RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent);
 public:
-	RedBlackTree(int maxSize, char* memStart);
+	void PrintTree();
+	RedBlackTree();
 	~RedBlackTree();
+	
+	int	init(int maxSize, char* memStart);
+	int loadTree();
+	int reset();
 
 	RBTreeNode* insert(unsigned long long key, unsigned long long value);
 	void insert(RBTreeNode *insertNode, RBTreeNode *parentNode);

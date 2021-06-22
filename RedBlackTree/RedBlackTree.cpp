@@ -1,5 +1,6 @@
 #include "RedBlackTree.h"
 
+#pragma region PRINT
 char buffer[200];
 void RedBlackTree::PrintTree(RBTreeNode *node, int depth)
 {
@@ -14,18 +15,45 @@ void RedBlackTree::PrintTree(RBTreeNode *node, int depth)
 	PrintTree(node->right, depth+1);
 }
 
-RedBlackTree::RedBlackTree(int maxSize, char* memStart)
+void RedBlackTree::PrintTree()
+{
+	PrintTree(root);
+}
+#pragma endregion
+
+RedBlackTree::RedBlackTree()
 {
 	m_size = 0;
 	root = NULL;
-
-	m_maxSize = maxSize;
-	m_memStart = memStart;
-
-	memset((void *)memStart, 0, sizeof(RBTreeNode) * maxSize);
-	
 }
 RedBlackTree::~RedBlackTree(){}
+
+int	RedBlackTree::init(int maxSize, char* memStart)
+{
+	m_maxSize = maxSize;
+	m_memStart = memStart;
+}
+
+int RedBlackTree::loadTree()
+{
+	RBTreeNode *sNode = (RBTreeNode *)m_memStart;
+	
+	while(sNode != NULL)
+	{
+		if(sNode->parent == NULL)
+		{
+			root = sNode;
+		}
+
+		m_size++;
+		sNode = (RBTreeNode *)(m_memStart + m_size * sizeof(RBTreeNode));
+	}
+}
+
+int	RedBlackTree::reset()
+{
+	memset((void *)m_memStart, 0, sizeof(RBTreeNode) * m_maxSize);
+}
 
 RBTreeNode* RedBlackTree::insert(unsigned long long key, unsigned long long value)
 {
@@ -86,10 +114,11 @@ void RedBlackTree::Remove(unsigned long long key)
 	if(removeTarget != NULL)
 	{
 		// delete removeTarget;
-
-		removeTarget = NULL;
-
+		
 		m_size--;
+		memcpy(removeTarget, (m_memStart + m_size * sizeof(RBTreeNode)), sizeof(RBTreeNode));
+		memset((m_memStart + m_size * sizeof(RBTreeNode)), 0, sizeof(RBTreeNode));
+
 	}
 
 	// PrintTree(root);
@@ -106,7 +135,7 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 	if(findNode->left == NULL) //왼쪽 자식이 없는 경우
 	{
 		removeTarget = findNode;
-		if(removeTarget == root)
+		if(removeTarget == root) // 여기 확인 해볼것
 		{
 			root = NULL;
 			return removeTarget;
@@ -198,16 +227,16 @@ RBTreeNode* RedBlackTree::find(unsigned long long key)
 	return NULL;
 }
 
-int RedBlackTree::Lotate(RBTreeNode *item)
+int RedBlackTree::Rotate(RBTreeNode *item)
 {
 	if(item->parent->left == item)
 	{
-		RightLotate(item);
+		RightRotate(item);
 		return 1;
 	}
 	else if(item->parent->right == item)
 	{
-		LeftLotate(item);
+		LeftRotate(item);
 		return 2;
 	}
 	else
@@ -216,12 +245,14 @@ int RedBlackTree::Lotate(RBTreeNode *item)
 	}
 }
 
-void RedBlackTree::RightLotate(RBTreeNode *item)
+void RedBlackTree::RightRotate(RBTreeNode *item)
 {
 	RBTreeNode *parent, *grandParent, *rightChild;
 	parent = item->parent;
 	grandParent = parent->parent;
 	rightChild = item->right;
+
+	if(parent == NULL || parent->right == item) return;
 
 	if(grandParent != NULL)
 	{
@@ -233,6 +264,10 @@ void RedBlackTree::RightLotate(RBTreeNode *item)
 		{
 			grandParent->left = item;
 		}
+	}
+	else
+	{
+		root = item;
 	}
 
 	item->parent = grandParent;
@@ -245,12 +280,14 @@ void RedBlackTree::RightLotate(RBTreeNode *item)
 		rightChild->parent = parent;
 }
 
-void RedBlackTree::LeftLotate(RBTreeNode *item)
+void RedBlackTree::LeftRotate(RBTreeNode *item)
 {
 	RBTreeNode *parent, *grandParent, *leftChild;
 	parent = item->parent;
 	grandParent = parent->parent;
 	leftChild = item->left;
+
+	if(parent == NULL || parent->left == item) return;
 
 	if(grandParent != NULL)
 	{
@@ -262,6 +299,10 @@ void RedBlackTree::LeftLotate(RBTreeNode *item)
 		{
 			grandParent->left = item;
 		}
+	}
+	else
+	{
+		root = item;
 	}
 
 	item->parent = grandParent;
@@ -288,8 +329,8 @@ void RedBlackTree::Restructuring(RBTreeNode *item)
 	{
 		if(grandParent->right == parent) // parent is right node
 		{
-			RightLotate(item);
-			LeftLotate(item);
+			RightRotate(item);
+			LeftRotate(item);
 			tem = parent;
 			parent = item;
 			item = tem;
@@ -297,15 +338,15 @@ void RedBlackTree::Restructuring(RBTreeNode *item)
 		else
 		{
 			// left - left rotate
-			RightLotate(parent);
+			RightRotate(parent);
 		}
 	}
 	else if(parent->right == item)// node is right node
 	{
 		if(grandParent->left == parent) // parent is left node
 		{
-			LeftLotate(item);
-			RightLotate(item);
+			LeftRotate(item);
+			RightRotate(item);
 			tem = parent;
 			parent = item;
 			item = tem;
@@ -313,7 +354,7 @@ void RedBlackTree::Restructuring(RBTreeNode *item)
 		else
 		{
 			// right - right rotate
-			LeftLotate(parent);
+			LeftRotate(parent);
 		}
 	}
 	else
@@ -324,11 +365,6 @@ void RedBlackTree::Restructuring(RBTreeNode *item)
 	// change color
 	parent->color = BLACK;
 	grandParent->color = RED; // red
-
-	if(grandParent == root)
-	{
-		root = parent;
-	}
 	
 }
 
@@ -398,7 +434,7 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 	if(sbling->color == RED) // 형제가 RED면 부모는 BLACK
 	{
 		//case 0
-		Lotate(sbling);
+		Rotate(sbling);
 		sbling->color = BLACK;
 		parent->color = RED;
 
@@ -427,15 +463,15 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 			//case 2 is left and right nephew is red
 			if(colorRight==RED)
 			{
-				RightLotate(sbling);
+				RightRotate(sbling);
 			}
 			//case 3 is left but right nephew is black
 			else
 			{
 				RBTreeNode *leftNephew = sbling->left;
 				leftNephew->color = BLACK;
-				LeftLotate(sbling->left);
-				RightLotate(leftNephew);
+				LeftRotate(sbling->left);
+				RightRotate(leftNephew);
 			}
 		}
 		else
@@ -443,15 +479,15 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 			//case 4 is right and left nephew is red
 			if(colorLeft==RED)
 			{
-				LeftLotate(sbling);
+				LeftRotate(sbling);
 			}
 			//case 5 is right but left nephew is black
 			else
 			{
 				RBTreeNode *rightNephew = sbling->right;
 				rightNephew->color = BLACK;
-				RightLotate(sbling->right);
-				LeftLotate(rightNephew);
+				RightRotate(sbling->right);
+				LeftRotate(rightNephew);
 			}
 		}
 	}
