@@ -254,31 +254,39 @@ int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, i
 	int startOffset = 0;
 	int offset = 0;
 	int count = 0;
+
+	// printf("ORIGINAL DATA : %s\n", string);
 	while(count < maxSize)
 	{
 		char c = string[offset];
 		if(c=='\0')
 		{
+			array = (char*)array+(count * arraySize);
 			if(arraySize < 5)
 			{
-				*((char*)array+(count * arraySize)) = atoi(&string[startOffset]);
+				*((int *)array) = atoi(&string[startOffset]);
+
+				// printf("\t %d %d\n", atoi(&string[startOffset]), *((int*)(array)));
 			}
 			else
 			{
-				*((char*)array+(count * arraySize)) = atoll(&string[startOffset]);
+				*((long long *)array) = atoll(&string[startOffset]);
 			}
 			break;
 		}
 		else if(c==',') {
 			string[offset] = '\0';
 
+			array = (char*)array+(count * arraySize);
 			if(arraySize < 5)
 			{
-				*((char*)array+(count * arraySize)) = atoi(&string[startOffset]);
+				*((int *)array) = atoi(&string[startOffset]);
+
+				// printf("\t %d %d\n", atoi(&string[startOffset]), *((int*)(array)));
 			}
 			else
 			{
-				*((char*)array+(count * arraySize)) = atoll(&string[startOffset]);
+				*((long long *)array) = atoll(&string[startOffset]);
 			}
 			count++;
 			startOffset = offset+1;
