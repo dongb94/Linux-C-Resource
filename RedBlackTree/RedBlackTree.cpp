@@ -10,99 +10,123 @@ void RedBlackTree::PrintTree(RBTreeNode *node, int depth)
 	std::cout<<buffer;
 
 	sprintf(buffer+depth, "L");
-	PrintTree(node->left, depth+1);
+	PrintTree(GetNode(node->left), depth+1);
 	sprintf(buffer+depth, "R");
-	PrintTree(node->right, depth+1);
+	PrintTree(GetNode(node->right), depth+1);
+	std::cout<<"------------------\n";
 }
 
 void RedBlackTree::PrintTree()
 {
-	PrintTree(root);
+	printf("HEADER %llx -STARTMEM %llx\n",m_header, memStart);
+	PrintTree(GetNode(m_header->rootNode));
 }
 #pragma endregion
 
-RedBlackTree::RedBlackTree()
-{
-	m_size = 0;
-	root = NULL;
-}
+
+RedBlackTree::RedBlackTree(){}
 RedBlackTree::~RedBlackTree(){}
 
-int	RedBlackTree::init(int maxSize, char* memStart)
+int	RedBlackTree::init(key_t key, int maxSize)
 {
-	m_maxSize = maxSize;
-	m_memStart = memStart;
-}
-
-int RedBlackTree::loadTree()
-{
-	RBTreeNode *sNode = (RBTreeNode *)m_memStart;
-	
-	while(sNode != NULL)
+	if(maxSize == 0) return -1;
+	int shmId = shmget(key, maxSize * sizeof(RBTreeNode), 0666 | IPC_CREAT | IPC_EXCL);
+	if(shmId < 0)
 	{
-		if(sNode->parent == NULL)
+		if (errno == EEXIST)
 		{
-			root = sNode;
+			errno = 0;
+			shmId = shmget(key, maxSize * sizeof(RBTreeNode), 0666 | IPC_CREAT);
+			if(shmId < 0)
+			{
+				printf("Make Shm Error [key[%d]]\n", key);
+				return -4;
+			}
 		}
-
-		m_size++;
-		sNode = (RBTreeNode *)(m_memStart + m_size * sizeof(RBTreeNode));
+		else
+		{
+				printf("Make Shm Error [key[%d]]\n", key);
+				return -5;
+		}
 	}
+
+	m_header = (RBHeader *)shmat(shmId, 0, 0);
+	memStart = (char*)m_header + sizeof(RBTreeNode);
+
+	if(m_header->maxSize == 0)
+	{
+		m_header->maxSize = maxSize;
+		reset();
+	}
+
+	return 0;
 }
 
 int	RedBlackTree::reset()
 {
-	memset((void *)m_memStart, 0, sizeof(RBTreeNode) * m_maxSize);
+	printf("Reset tree [%llx]\n", m_header);
+
+	m_header->rootNode = -1;
+	m_header->size = 0;
+
+	memset((void *)memStart, 0, sizeof(RBTreeNode) * m_header->maxSize);
 }
 
 RBTreeNode* RedBlackTree::insert(unsigned long long key, unsigned long long value)
 {
 	//TODO Add key duplicate action
 
-	if(m_maxSize <= m_size) return NULL;
+	if(key == 0) 
+	{
+		printf("insert 0 key to red black tree\n");
+		return NULL;
+	}
 
-	RBTreeNode *newNode = (RBTreeNode *)(m_memStart + m_size * sizeof(RBTreeNode));
+	if(m_header->maxSize <= m_header->size) return NULL;
+
+	RBTreeNode *newNode = (RBTreeNode *)(memStart + m_header->size * sizeof(RBTreeNode));
+	printf("HEADER %llx -STARTMEM %llx -NEWMEM %llx\n",m_header, memStart, newNode);
 	newNode->color = RED; // RED
 	newNode->value.Key = key;
 	newNode->value.Value = value;
+	newNode->index = m_header->size;
+	newNode->parent = newNode->left = newNode->right = -1;
 
-	if(root == NULL)
+	if(m_header->rootNode == -1)
 	{
-		root = newNode;
+		m_header->rootNode = m_header->size;
 		newNode->color = BLACK; // BLACK
 	}
 	else
 	{
-		insert(newNode, root);
+		insert(newNode, GetNode(m_header->rootNode));
 	}
 
-	m_size++;
+	m_header->size++;
 
-	// PrintTree(root);
-	// std::cout<<"Insert : ["<<newNode->value.Key<<","<<newNode->value.Value<<"] ["<<(int)(newNode->color)<<"] Size["<<m_size<<"]"<<newNode<<"\n";
+	// PrintTree(m_header->rootNode);
+	// std::cout<<"Insert : ["<<newNode->value.Key<<","<<newNode->value.Value<<"] ["<<(int)(newNode->color)<<"] Size["<<m_header->size<<"]"<<newNode<<"\n";
 	return newNode;
 }
 
 void RedBlackTree::insert(RBTreeNode *insertNode, RBTreeNode *parentNode)
 {
+	int *index;
 	if((unsigned long long) insertNode->value.Key < (unsigned long long) parentNode->value.Key)
-		node = &(parentNode->left);
+		index = &(parentNode->left);
 	else
-		node = &(parentNode->right);
+		index = &(parentNode->right);
 
-	if(*node == NULL)
+	if(*index == -1)
 	{
-		(*node) = insertNode;
-		insertNode->parent = parentNode;
+		*index = insertNode->index;
+		insertNode->parent = parentNode->index;
 
 		CheckTree(insertNode);
 	}
 	else
 	{
-		if((unsigned long long) insertNode->value.Key < (unsigned long long) (parentNode)->value.Key)
-			insert(insertNode, *(node));
-		else
-			insert(insertNode, *(node));
+		insert(insertNode, GetNode(*index));
 	}
 }
 
@@ -115,14 +139,18 @@ void RedBlackTree::Remove(unsigned long long key)
 	{
 		// delete removeTarget;
 		
-		m_size--;
-		memcpy(removeTarget, (m_memStart + m_size * sizeof(RBTreeNode)), sizeof(RBTreeNode));
-		memset((m_memStart + m_size * sizeof(RBTreeNode)), 0, sizeof(RBTreeNode));
+		m_header->size--;
+
+		int index = removeTarget->index; // 기존 index 저장
+
+		memcpy(removeTarget, GetNode(m_header->size), sizeof(RBTreeNode));
+		memset(GetNode(m_header->size), 0, sizeof(RBTreeNode));
+
+		removeTarget->index = index; // index 갱신
 
 	}
-
-	// PrintTree(root);
-	// std::cout<<"Remove : ["<<key<<"] Size["<<m_size<<"]"<<"\n";
+	// PrintTree(m_header->rootNode);
+	// std::cout<<"Remove : ["<<key<<"] Size["<<m_header->size<<"]"<<"\n";
 }
 
 RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
@@ -132,22 +160,23 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 
 	RBTreeNode *removeTarget;
 	RBTreeNode *largestLeftChild;
-	if(findNode->left == NULL) //왼쪽 자식이 없는 경우
+	if(findNode->left == -1) //왼쪽 자식이 없는 경우
 	{
 		removeTarget = findNode;
-		if(removeTarget == root) // 여기 확인 해볼것
+		if(removeTarget == GetNode(m_header->rootNode)) // 여기 확인 해볼것
 		{
-			root = NULL;
+			m_header->rootNode = -1;
 			return removeTarget;
 		}
 
-		if(removeTarget->parent->left == removeTarget)
+		RBTreeNode *parent = GetNode(removeTarget->parent);
+		if(GetNode(parent->left) == removeTarget)
 		{
-			removeTarget->parent->left = removeTarget->right;
+			parent->left=removeTarget->right;
 		}
 		else
 		{
-			removeTarget->parent->right = removeTarget->right;
+			parent->right=removeTarget->right;
 		}
 
 		if(removeTarget->color == RED) // 삭제 노드가 RED면 추가 조치 없음.
@@ -155,22 +184,23 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 			return removeTarget;
 		}
 
-		if(removeTarget->right != NULL) // 왼쪽에 자식이 없으면 오른쪽 자식은 없거나 RED
+		if(removeTarget->right != -1) // 왼쪽에 자식이 없으면 오른쪽 자식은 없거나 RED
 		{
-			removeTarget->right->parent = removeTarget->parent;
-			removeTarget->right->color = BLACK;
+			RBTreeNode *right = GetNode(removeTarget->right);
+			right->parent=removeTarget->parent;
+			right->color = BLACK;
 			return removeTarget;
 		}
 
 		// 
-		RemoveDoubleBlack(NULL, removeTarget->parent);
+		RemoveDoubleBlack(NULL, GetNode(removeTarget->parent));
 	}
 	else // 왼쪽 자식이 있는 경우
 	{
-		largestLeftChild = findNode->left;
-		while(largestLeftChild->right != NULL)
+		largestLeftChild = GetNode(findNode->left);
+		while(largestLeftChild->right != -1)
 		{
-			largestLeftChild = largestLeftChild->right;
+			largestLeftChild = GetNode(largestLeftChild->right);
 		}
 
 		removeTarget = largestLeftChild;
@@ -178,25 +208,28 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 		memcpy(&(findNode->value), &(removeTarget->value), sizeof(NodeValue));
 
 		// remove target 삭제
-		if(removeTarget->parent->left==removeTarget) // 왼쪽에 자식이 1개밖에 없거나, BLACK LEFT 자식과 RED LEFT LEFT 손자만 있는 경우
+
+		RBTreeNode *parent = GetNode(removeTarget->parent);
+		if(GetNode(parent->left)==removeTarget) // 왼쪽에 자식이 1개밖에 없거나, BLACK LEFT 자식과 RED LEFT LEFT 손자만 있는 경우
 		{
-			removeTarget->parent->left = removeTarget->left;
+			parent->left==removeTarget->left;
 		}
 		else
 		{
-			removeTarget->parent->right = removeTarget->left;
+			parent->right==removeTarget->left;
 		}
 
-		if(removeTarget->left != NULL) // 오른쪽 자식이 없으므로 왼쪽 자식이 있다면 무조건 RED이다.
+		if(removeTarget->left != -1) // 오른쪽 자식이 없으므로 왼쪽 자식이 있다면 무조건 RED이다.
 		{
-			removeTarget->left->parent = removeTarget->parent;
-			removeTarget->left->color = BLACK;
+			RBTreeNode *left = GetNode(removeTarget->left);
+			left->parent=removeTarget->parent;
+			left->color = BLACK;
 			return removeTarget;
 		}
 
 		if(removeTarget->color == BLACK) // 삭제 NODE가 RED면 추가 조치가 필요 없다.
 		{
-			RemoveDoubleBlack(NULL, removeTarget->parent);
+			RemoveDoubleBlack(NULL, GetNode(removeTarget->parent));
 		}
 	}
 	return removeTarget;
@@ -204,24 +237,24 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 
 RBTreeNode* RedBlackTree::find(unsigned long long key)
 {
-	if(root == NULL) return NULL;
+	if(m_header->rootNode == -1) return NULL;
 
-	RBTreeNode *pointer = root;
+	RBTreeNode *pointer = GetNode(m_header->rootNode);
 	while (pointer != NULL)
 	{
-		// std::cout<<"FindKey : "<<key<<" [C]["<<pointer->value.Key<<"] ["<<(int)(pointer->color)<<"] ["<<pointer->value.Value<<"]"<<pointer<<"\n";
+		//std::cout<<"FindKey : "<<key<<" [C]["<<pointer->value.Key<<"] ["<<(int)(pointer->color)<<"] ["<<pointer->value.Value<<"]"<<pointer<<"\n";
 		if(key == pointer->value.Key)
 		{
-			// std::cout<<"Find Node ["<<pointer->value.Key<<","<<pointer->value.Value<<"]"<<pointer<<"\n";
+			//std::cout<<"Find Node ["<<pointer->value.Key<<","<<pointer->value.Value<<"]"<<pointer<<"\n";
 			return pointer;
 		}
 		else if(key < pointer->value.Key)
 		{
-			pointer = pointer->left;
+			pointer = GetNode(pointer->left);
 		}
 		else
 		{
-			pointer = pointer->right;
+			pointer = GetNode(pointer->right);
 		}
 	}
 	return NULL;
@@ -229,12 +262,13 @@ RBTreeNode* RedBlackTree::find(unsigned long long key)
 
 int RedBlackTree::Rotate(RBTreeNode *item)
 {
-	if(item->parent->left == item)
+	RBTreeNode *parent = GetNode(item->parent);
+	if(GetNode(parent->left) == item)
 	{
 		RightRotate(item);
 		return 1;
 	}
-	else if(item->parent->right == item)
+	else if(GetNode(parent->right) == item)
 	{
 		LeftRotate(item);
 		return 2;
@@ -247,87 +281,140 @@ int RedBlackTree::Rotate(RBTreeNode *item)
 
 void RedBlackTree::RightRotate(RBTreeNode *item)
 {
-	RBTreeNode *parent, *grandParent, *rightChild;
-	parent = item->parent;
-	grandParent = parent->parent;
-	rightChild = item->right;
+	if(item == NULL)
+	{
+		printf("NULL Rotate");
+		return;
+	}
+	if(item->parent == -1) 
+	{
+		printf("Wrong Rotate P[%d] L[%d] R[%d]", item->parent, item->left, item->right);
+		return;
+	}
 
-	if(parent == NULL || parent->right == item) return;
+	RBTreeNode *parent, *grandParent, *rightChild;
+	parent = GetNode(item->parent);
+	grandParent = GetNode(parent->parent);
+	rightChild = GetNode(item->right);
+
+	
+	//Check Tree Integrity
+	if(parent->index != item->parent || 
+		(grandParent!=NULL && grandParent->index != parent->parent) ||
+		parent->left != item->index ||
+		(rightChild != NULL && (rightChild->parent != item->index ||
+		item->right != rightChild->index)))
+	{
+		if(grandParent != NULL)
+			printf("<< TREE Integrity Error >> [GP %d %d %d %d]\n", grandParent->index, grandParent->parent, grandParent->left, grandParent->right);
+		printf("<< TREE Integrity Error >> [P %d %d %d %d]\n", parent->index, parent->parent, parent->left, parent->right);
+		printf("<< TREE Integrity Error >> [I %d %d %d %d]\n", item->index, item->parent, item->left, item->right);
+		if(rightChild != NULL)
+			printf("<< TREE Integrity Error >> [RC %d %d %d %d]\n", rightChild->index, rightChild->parent, rightChild->left, rightChild->right);
+	}
+
+	if(GetNode(parent->right) == item) return;
 
 	if(grandParent != NULL)
 	{
-		if(grandParent->right == parent) // parent is right node
+		if(GetNode(grandParent->right) == parent) // parent is right node
 		{
-			grandParent->right = item;
+			grandParent->right = item->index;
 		}
 		else
 		{
-			grandParent->left = item;
+			grandParent->left = item->index;
 		}
 	}
 	else
 	{
-		root = item;
+		m_header->rootNode = item->index;
 	}
 
-	item->parent = grandParent;
-	item->right = parent;
+	item->parent = grandParent==NULL?-1:grandParent->index;
+	item->right = parent->index;
 
-	parent->parent = item;
-	parent->left = rightChild;
+	parent->parent = item->index;
+	parent->left = rightChild==NULL?-1:rightChild->index;
 
 	if(rightChild != NULL)
-		rightChild->parent = parent;
+		rightChild->parent = parent->index;
 }
 
 void RedBlackTree::LeftRotate(RBTreeNode *item)
 {
-	RBTreeNode *parent, *grandParent, *leftChild;
-	parent = item->parent;
-	grandParent = parent->parent;
-	leftChild = item->left;
+	if(item == NULL)
+	{
+		printf("NULL Rotate");
+		return;
+	}
+	if(item->parent == -1) 
+	{
+		printf("Wrong Rotate P[%d] L[%d] R[%d]", item->parent, item->left, item->right);
+		return;
+	}
 
-	if(parent == NULL || parent->left == item) return;
+	RBTreeNode *parent, *grandParent, *leftChild;
+	parent = GetNode(item->parent);
+	grandParent = GetNode(parent->parent);
+	leftChild = GetNode(item->left);
+
+	//Check Tree Integrity
+	if(parent->index != item->parent ||
+		(grandParent!=NULL && grandParent->index != parent->parent) || 
+		parent->right != item->index || 
+		(leftChild != NULL && (leftChild->parent != item->index || 
+		item->left != leftChild->index)))
+	{
+		if(grandParent != NULL)
+			printf("<< TREE Integrity Error >> [GP %d %d %d %d]\n", grandParent->index, grandParent->parent, grandParent->left, grandParent->right);
+		printf("<< TREE Integrity Error >> [P %d %d %d %d]\n", parent->index, parent->parent, parent->left, parent->right);
+		printf("<< TREE Integrity Error >> [I %d %d %d %d]\n", item->index, item->parent, item->left, item->right);
+		if(leftChild != NULL)
+			printf("<< TREE Integrity Error >> [LC %d %d %d %d]\n", leftChild->index, leftChild->parent, leftChild->left, leftChild->right);
+	}
+
+	if(GetNode(parent->left) == item) return;
 
 	if(grandParent != NULL)
 	{
-		if(grandParent->right == parent) // parent is right node
+		if( GetNode(grandParent->right) == parent) // parent is right node
 		{
-			grandParent->right = item;
+			grandParent->right = item->index;
 		}
 		else
 		{
-			grandParent->left = item;
+			grandParent->left = item->index;
 		}
 	}
 	else
 	{
-		root = item;
+		m_header->rootNode = item->index;
 	}
 
-	item->parent = grandParent;
-	item->left = parent;
+	item->parent = grandParent==NULL?-1:grandParent->index;
+	item->left = parent->index;
 
-	parent->parent = item;
-	parent->right = leftChild;
+	parent->parent = item->index;
+	parent->right = leftChild==NULL?-1:leftChild->index;
 
 	if(leftChild != NULL)
-		leftChild->parent = parent;
+		leftChild->parent = parent->index;
 }
 
 void RedBlackTree::Restructuring(RBTreeNode *item)
 {
 	RBTreeNode *parent, *grandParent;
-	parent = item->parent;
-	grandParent = parent->parent;
+	parent = GetNode(item->parent);
+	grandParent = GetNode(parent->parent);
 
 	if(grandParent == NULL) return;
 
 	RBTreeNode *tem;
 
-	if(parent->left == item) // node is left node
+	if(parent->left == item->index) // node is left node
 	{
-		if(grandParent->right == parent) // parent is right node
+		if(grandParent->right == parent->index) // parent is right node
 		{
 			RightRotate(item);
 			LeftRotate(item);
@@ -341,9 +428,9 @@ void RedBlackTree::Restructuring(RBTreeNode *item)
 			RightRotate(parent);
 		}
 	}
-	else if(parent->right == item)// node is right node
+	else if(parent->right == item->index)// node is right node
 	{
-		if(grandParent->left == parent) // parent is left node
+		if(grandParent->left == parent->index) // parent is left node
 		{
 			LeftRotate(item);
 			RightRotate(item);
@@ -370,21 +457,22 @@ void RedBlackTree::Restructuring(RBTreeNode *item)
 
 void RedBlackTree::CheckTree(RBTreeNode *item)
 {
-	RBTreeNode *parentNode = item->parent;
-	if(parentNode == NULL) // item == root
+	RBTreeNode *parentNode = GetNode(item->parent);
+	if(parentNode == NULL) // item == m_header->rootNode
 	{
 		return;
 	}
 	if(item->color == RED && parentNode->color == RED) // 연속으로 Red가 2개 인 경우
 	{
-		RBTreeNode *uncle;
-		if(parentNode == parentNode->parent->left)
+		RBTreeNode *grandParent, *uncle;
+		grandParent = GetNode(parentNode->parent);
+		if(parentNode->index == grandParent->left)
 		{
-			uncle = parentNode->parent->right;
+			uncle = GetNode(grandParent->right);
 		}
-		else if (parentNode == parentNode->parent->right)
+		else if (parentNode->index == grandParent->right)
 		{
-			uncle = parentNode->parent->left;
+			uncle = GetNode(grandParent->left);
 		}
 		else
 		{
@@ -401,16 +489,16 @@ void RedBlackTree::CheckTree(RBTreeNode *item)
 			uncle->color = BLACK;
 			parentNode->color = BLACK;
 
-			if(parentNode->parent == root)
+			if(grandParent->index == m_header->rootNode)
 			{
-				parentNode->parent->color = BLACK;
+				grandParent->color = BLACK;
 			}
 			else
 			{
-				parentNode->parent->color = RED;
+				grandParent->color = RED;
 			}
 
-			CheckTree(parentNode->parent);
+			CheckTree(grandParent);
 		}
 	}
 }
@@ -420,15 +508,15 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 {
 	bool isLeft;
 	RBTreeNode *sbling;
-	if(parent->left == doubleBlack)
+	if(GetNode(parent->left) == doubleBlack)
 	{
 		isLeft = true;
-		sbling = parent->right;
+		sbling = GetNode(parent->right);
 	}
 	else
 	{
 		isLeft = false;
-		sbling = parent->left;
+		sbling = GetNode(parent->left);
 	}
 
 	if(sbling->color == RED) // 형제가 RED면 부모는 BLACK
@@ -443,8 +531,8 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 	else // 형제가 BLACK 인경우
 	{
 		char colorLeft, colorRight;
-		if(sbling->left != NULL && sbling->left->color == RED) colorLeft = RED;
-		if(sbling->right != NULL && sbling->right->color == RED) colorRight = RED;
+		if(sbling->left != -1 && GetNode(sbling->left)->color == RED) colorLeft = RED;
+		if(sbling->right != -1 && GetNode(sbling->right)->color == RED) colorRight = RED;
 		//case 1 double black
 		if(colorLeft==BLACK && colorRight==BLACK)
 		{
@@ -455,7 +543,7 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 			}
 			else
 			{
-				RemoveDoubleBlack(parent, parent->parent);
+				RemoveDoubleBlack(parent, GetNode(parent->parent));
 			}
 		}
 		else if(isLeft)
@@ -468,9 +556,9 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 			//case 3 is left but right nephew is black
 			else
 			{
-				RBTreeNode *leftNephew = sbling->left;
+				RBTreeNode *leftNephew = GetNode(sbling->left);
 				leftNephew->color = BLACK;
-				LeftRotate(sbling->left);
+				LeftRotate(leftNephew);
 				RightRotate(leftNephew);
 			}
 		}
@@ -484,11 +572,24 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 			//case 5 is right but left nephew is black
 			else
 			{
-				RBTreeNode *rightNephew = sbling->right;
+				RBTreeNode *rightNephew = GetNode(sbling->right);
 				rightNephew->color = BLACK;
-				RightRotate(sbling->right);
+				RightRotate(rightNephew);
 				LeftRotate(rightNephew);
 			}
 		}
 	}
+}
+
+RBTreeNode* RedBlackTree::GetNode(int index)
+{
+	if(index < 0) return NULL;
+	return (RBTreeNode*)(memStart + index * sizeof(RBTreeNode));
+
+}
+
+RBTreeNode* RedBlackTree::operator[](int index)
+{
+	if(index < 0) return NULL;
+	return (RBTreeNode*)(memStart + index * sizeof(RBTreeNode));
 }

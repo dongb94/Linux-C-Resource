@@ -4,6 +4,9 @@
 #include <iostream>
 #include <cstring>
 #include <stdio.h>
+#include <errno.h>
+#include <sys/shm.h> 
+#include <sys/ipc.h> 
 
 enum RedBlackNodeColor
 {
@@ -19,22 +22,28 @@ struct NodeValue
 
 struct RBTreeNode
 {
-	RBTreeNode *left, *right, *parent;
+	int left, right, parent;
 	NodeValue value;
+	int index;
 	char color;
 };
 
+struct RBHeader
+{
+	int			rootNode;
+	int			size;
+	int			maxSize;
+};
+
+// 자연수만을 Key로 받는 Red-Black Tree.
 class RedBlackTree
 {
 private:
-
-	int m_maxSize;
-	char *m_memStart;
-
-	int m_size;
 	
-	RBTreeNode *root;
-	RBTreeNode **node;
+	char		*memStart;
+
+	RBHeader	*m_header;
+	RBTreeNode	*node;
 
 	void PrintTree(RBTreeNode *root, int depth = 0);
 
@@ -47,13 +56,16 @@ private:
 	void CheckTree(RBTreeNode *item);
 
 	void RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent);
+
+	RBTreeNode* GetNode(int index);
+	RBTreeNode* operator[](int index);
+
 public:
 	void PrintTree();
 	RedBlackTree();
 	~RedBlackTree();
-	
-	int	init(int maxSize, char* memStart);
-	int loadTree();
+
+	int	init(key_t key, int maxSize);
 	int reset();
 
 	RBTreeNode* insert(unsigned long long key, unsigned long long value);

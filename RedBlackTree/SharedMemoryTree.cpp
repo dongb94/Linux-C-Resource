@@ -48,32 +48,7 @@ int CSharedMemoryTree::CreateArray(key_t KeyValue, unsigned int ArrayNum, unsign
 	m_nSizeNum = ArrayNum;
 	m_nArraySize = ArraySize;
 
-	st_HashedShmHandle shm_Hanble;
-	Init_hashed_shm_handle(&shm_Hanble, ArrayNum, sizeof(RBTreeNode), ArrayNum, KeyValue+1);
-	nRet = Init_hashed_shm(&shm_Hanble);
-	if (nRet < 0)
-	{
-		dAppLog(LOG_CRI, "[CreateTree] [%x] Init_hashed_shm: %s", KeyValue+1, Msg_hashed_shm(nRet));
-		return -2;
-	}
-
-	nRet = Get_hashed_shm(&shm_Hanble, MAKE_SHM_KEY_FROM_INDEX(0), (void**)&m_pData);
-	if(nRet < 0)
-	{
-		nRet = New_hashed_shm(&shm_Hanble, MAKE_SHM_KEY_FROM_INDEX(0), (void**)&m_pData);
-		if(nRet < 0)
-		{
-			dAppLog(LOG_CRI, "Tree Shm Init Error [index %d]", 0);
-			return -3;
-		}
-		m_rbTree.init(ArrayNum, m_pData);
-		m_rbTree.reset();
-	}
-	else
-	{
-		m_rbTree.init(ArrayNum, m_pData);
-		m_rbTree.loadTree();
-	}
+	m_rbTree.init(KeyValue + 1, ArrayNum);
 
 	return 1;
 }
@@ -86,11 +61,12 @@ char* CSharedMemoryTree::operator[] (int key)
 		return NULL;
 	}
 
-	m_rbTree.PrintTree();
+	// m_rbTree.PrintTree();
 
 	RBTreeNode *node = m_rbTree.find(key);
 	if(node==NULL)
 	{
+		dAppLog(LOG_DEBUG, "Add Key[%d]", key);
 		return Add(key);
 	}
 	UINT64 shmKey = node->value.Value;
