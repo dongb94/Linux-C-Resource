@@ -21,11 +21,12 @@ public:
 	~CSharedMemoryTree();
 
 	int   CreateArray(key_t KeyValue, unsigned int ArrayNum, unsigned int ArraySize);
-	char* GetArray(int index);
 
-	char* operator[] (int index);
+	char* operator[] (int key);		// 키로 검색		O(logN)
+	char* GetArray(int index);		// 인덱스로 검색	O(1)
 
 	char* Add(UINT64 key);
+	int Remove(UINT64 key);
 
 	void	printTree();
 

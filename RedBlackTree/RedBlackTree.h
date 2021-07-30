@@ -75,5 +75,6 @@ public:
 	RBTreeNode* RemoveNode(unsigned long long key);
 
 	RBTreeNode* find(unsigned long long key);
+	RBTreeNode* getLastNode();
 };
 #endif

@@ -6,7 +6,7 @@ void RedBlackTree::PrintTree(RBTreeNode *node, int depth)
 {
 	if(node == NULL) return;
 
-	sprintf(buffer + depth, "(%d,%d)[%d]\n\0", node->value.Key, node->value.Value, node->color);
+	sprintf(buffer + depth, "\t[%d](%d,%d)[P %d][LC %d][RC %d][C %d]\n\0", node->index, node->value.Key, node->value.Value, node->parent, node->left, node->right, node->color);
 	std::cout<<buffer;
 
 	sprintf(buffer+depth, "L");
@@ -18,11 +18,10 @@ void RedBlackTree::PrintTree(RBTreeNode *node, int depth)
 
 void RedBlackTree::PrintTree()
 {
-	printf("HEADER %llx -STARTMEM %llx\n",m_header, memStart);
+	printf("HEADER %d[%llx] -STARTMEM %llx\n",m_header->rootNode, m_header, memStart);
 	PrintTree(GetNode(m_header->rootNode));
 }
 #pragma endregion
-
 
 RedBlackTree::RedBlackTree(){}
 RedBlackTree::~RedBlackTree(){}
@@ -45,8 +44,8 @@ int	RedBlackTree::init(key_t key, int maxSize)
 		}
 		else
 		{
-				printf("Make Shm Error [key[%d]]\n", key);
-				return -5;
+			printf("Make Shm Error [key[%d]]\n", key);
+			return -5;
 		}
 	}
 
@@ -85,7 +84,7 @@ RBTreeNode* RedBlackTree::insert(unsigned long long key, unsigned long long valu
 	if(m_header->maxSize <= m_header->size) return NULL;
 
 	RBTreeNode *newNode = (RBTreeNode *)(memStart + m_header->size * sizeof(RBTreeNode));
-	printf("HEADER %llx -STARTMEM %llx -NEWMEM %llx\n",m_header, memStart, newNode);
+	// printf("HEADER %llx -STARTMEM %llx -NEWMEM %llx\n",m_header, memStart, newNode);
 	newNode->color = RED; // RED
 	newNode->value.Key = key;
 	newNode->value.Value = value;
@@ -104,7 +103,7 @@ RBTreeNode* RedBlackTree::insert(unsigned long long key, unsigned long long valu
 
 	m_header->size++;
 
-	// PrintTree(m_header->rootNode);
+	// PrintTree();
 	// std::cout<<"Insert : ["<<newNode->value.Key<<","<<newNode->value.Value<<"] ["<<(int)(newNode->color)<<"] Size["<<m_header->size<<"]"<<newNode<<"\n";
 	return newNode;
 }
@@ -130,7 +129,7 @@ void RedBlackTree::insert(RBTreeNode *insertNode, RBTreeNode *parentNode)
 	}
 }
 
-// 오류 있음
+// remove 기점으로 메모리가 바뀐다.
 void RedBlackTree::Remove(unsigned long long key)
 {
 	RBTreeNode *removeTarget = RemoveNode(key);
@@ -138,18 +137,55 @@ void RedBlackTree::Remove(unsigned long long key)
 	if(removeTarget != NULL)
 	{
 		// delete removeTarget;
-		
+
 		m_header->size--;
 
-		int index = removeTarget->index; // 기존 index 저장
+		if(m_header->size == removeTarget->index)
+		{
+			memset(removeTarget, 0, sizeof(RBTreeNode));
+		}
+		else
+		{
+			int index = removeTarget->index; // 기존 index 저장
 
-		memcpy(removeTarget, GetNode(m_header->size), sizeof(RBTreeNode));
-		memset(GetNode(m_header->size), 0, sizeof(RBTreeNode));
+			RBTreeNode *updateTarget = GetNode(m_header->size);
 
-		removeTarget->index = index; // index 갱신
+			memcpy(removeTarget, updateTarget, sizeof(RBTreeNode));
+			memset(updateTarget, 0, sizeof(RBTreeNode));
 
+			if(removeTarget->parent != -1)
+			{
+				updateTarget = GetNode(removeTarget->parent);
+				if(updateTarget->right == removeTarget->index)
+				{
+					updateTarget->right = index;
+				}
+				else if(updateTarget->left == removeTarget->index)
+				{
+					updateTarget->left = index;
+				}
+				else
+				{
+					printf("[CRITICAL ERROR] Remove Red-Black Tree : Parant node index not currect [P %d][PL %d][PR %d][Target %d]\n", removeTarget->parent, updateTarget->left, updateTarget->right, m_header->size);
+				}
+			}
+
+			if(removeTarget->left != -1)
+			{
+				updateTarget = GetNode(removeTarget->left);
+				updateTarget->parent = index;
+			}
+
+			if(removeTarget->right != -1)
+			{
+				updateTarget = GetNode(removeTarget->right);
+				updateTarget->parent = index;
+			}
+
+			removeTarget->index = index; // index 갱신
+		}
 	}
-	// PrintTree(m_header->rootNode);
+	// PrintTree();
 	// std::cout<<"Remove : ["<<key<<"] Size["<<m_header->size<<"]"<<"\n";
 }
 
@@ -163,20 +199,20 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 	if(findNode->left == -1) //왼쪽 자식이 없는 경우
 	{
 		removeTarget = findNode;
-		if(removeTarget == GetNode(m_header->rootNode)) // 여기 확인 해볼것
+		if(removeTarget->index == m_header->rootNode)
 		{
-			m_header->rootNode = -1;
+			m_header->rootNode = removeTarget->right;
 			return removeTarget;
 		}
 
 		RBTreeNode *parent = GetNode(removeTarget->parent);
-		if(GetNode(parent->left) == removeTarget)
+		if(parent->left == removeTarget->index)
 		{
-			parent->left=removeTarget->right;
+			parent->left = removeTarget->right;
 		}
 		else
 		{
-			parent->right=removeTarget->right;
+			parent->right = removeTarget->right;
 		}
 
 		if(removeTarget->color == RED) // 삭제 노드가 RED면 추가 조치 없음.
@@ -184,7 +220,8 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 			return removeTarget;
 		}
 
-		if(removeTarget->right != -1) // 왼쪽에 자식이 없으면 오른쪽 자식은 없거나 RED
+		// 왼쪽에 자식이 없으면 오른쪽 자식은 없거나 RED
+		if(removeTarget->right != -1) // RED인 자식이 있으면 부모를 수정하고 BLACK으로 변경
 		{
 			RBTreeNode *right = GetNode(removeTarget->right);
 			right->parent=removeTarget->parent;
@@ -192,7 +229,7 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 			return removeTarget;
 		}
 
-		// 
+		// 더블 블랙 확인
 		RemoveDoubleBlack(NULL, GetNode(removeTarget->parent));
 	}
 	else // 왼쪽 자식이 있는 경우
@@ -212,14 +249,22 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 		RBTreeNode *parent = GetNode(removeTarget->parent);
 		if(GetNode(parent->left)==removeTarget) // 왼쪽에 자식이 1개밖에 없거나, BLACK LEFT 자식과 RED LEFT LEFT 손자만 있는 경우
 		{
-			parent->left==removeTarget->left;
+			parent->left = removeTarget->left;
+			if(parent->left != -1) // RED LEFT LEFT 손자가 있는 경우
+			{
+				RBTreeNode *redGrandChild = GetNode(parent->left);
+				redGrandChild->parent = parent->index;
+				redGrandChild->color = BLACK;
+
+				return removeTarget;
+			}
 		}
 		else
 		{
-			parent->right==removeTarget->left;
+			parent->right = removeTarget->left;
 		}
 
-		if(removeTarget->left != -1) // 오른쪽 자식이 없으므로 왼쪽 자식이 있다면 무조건 RED이다.
+		if(removeTarget->left != -1) // 오른쪽 자식이 없으므로 왼쪽 자식이 있다면 무조건 RED이다. 왼쪽 자식이 RED 이면 삭제 노드는 무조건 BLACK.
 		{
 			RBTreeNode *left = GetNode(removeTarget->left);
 			left->parent=removeTarget->parent;
@@ -234,6 +279,8 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 	}
 	return removeTarget;
 }
+
+
 
 RBTreeNode* RedBlackTree::find(unsigned long long key)
 {
@@ -258,6 +305,12 @@ RBTreeNode* RedBlackTree::find(unsigned long long key)
 		}
 	}
 	return NULL;
+}
+
+RBTreeNode* RedBlackTree::getLastNode()
+{
+	if(m_header->size == 0) return NULL;
+	return (RBTreeNode *)(memStart + (m_header->size - 1) * sizeof(RBTreeNode));
 }
 
 int RedBlackTree::Rotate(RBTreeNode *item)
@@ -513,10 +566,14 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 		isLeft = true;
 		sbling = GetNode(parent->right);
 	}
-	else
+	else if(GetNode(parent->right) == doubleBlack)
 	{
 		isLeft = false;
 		sbling = GetNode(parent->left);
+	}
+	else // 무효
+	{
+		return;
 	}
 
 	if(sbling->color == RED) // 형제가 RED면 부모는 BLACK

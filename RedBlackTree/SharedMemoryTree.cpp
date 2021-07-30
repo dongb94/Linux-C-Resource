@@ -70,7 +70,7 @@ char* CSharedMemoryTree::operator[] (int key)
 		return Add(key);
 	}
 	UINT64 shmKey = node->value.Value;
-	dAppLog(LOG_DEBUG, "Find shmKey %lld", shmKey);
+	// dAppLog(LOG_DEBUG, "Find shmKey %lld", shmKey);
 
 	int res;
 	res = Get_hashed_shm(&m_hsm_Memory, MAKE_SHM_KEY_FROM_INDEX(shmKey), (void**)&m_pData);
@@ -138,6 +138,61 @@ char* CSharedMemoryTree::Add(UINT64 key)
 	m_count++;
 
 	return m_pData;
+}
+
+int CSharedMemoryTree::Remove(UINT64 key)
+{
+	if (key < 0)
+		return -1;
+
+	if(m_count <= 0)
+	{
+		dAppLog(LOG_DEBUG, "SharedMemoryTree Remove Error : m_count is 0 [key %llx]",key);
+		return 0;
+	}
+
+	RBTreeNode *node = m_rbTree.find(key);
+	if(node==NULL)
+	{
+		return 0;
+	}
+
+	UINT64 shmKey = node->value.Value;
+
+	int res;
+	res = Get_hashed_shm(&m_hsm_Memory, MAKE_SHM_KEY_FROM_INDEX(shmKey), (void**)&m_pData);
+	if(res < 0)
+	{
+		return 0;
+	}
+
+	char *updateData;
+	res = Get_hashed_shm(&m_hsm_Memory, MAKE_SHM_KEY_FROM_INDEX(m_count-1), (void**)&updateData);
+	if(res < 0)
+	{
+		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Get Last node Error [count %d]",m_count);
+		return -1;
+	}
+
+	RBTreeNode *lastNode = m_rbTree.getLastNode();
+	if(lastNode == NULL)
+	{
+		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Last node IS NULL [count %d]",m_count);
+		return -1;
+	}
+	if(lastNode->value.Value != m_count-1)
+	{
+		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Last node info not currect [count %d][last node value %d]",m_count, lastNode->value.Value);
+		return 0;
+	}
+
+	memcpy(m_pData, updateData, m_nArraySize);
+	lastNode->value.Value = shmKey;
+	m_rbTree.Remove(key);
+
+	m_count--;
+
+	return 0;
 }
 
 void CSharedMemoryTree::printTree()
