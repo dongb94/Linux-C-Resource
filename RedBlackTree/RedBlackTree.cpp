@@ -341,7 +341,7 @@ void RedBlackTree::RightRotate(RBTreeNode *item)
 	}
 	if(item->parent == -1) 
 	{
-		printf("Wrong Rotate P[%d] L[%d] R[%d]", item->parent, item->left, item->right);
+		printf("Wrong Rotate I[%d] P[%d] L[%d] R[%d]", item->index, item->parent, item->left, item->right);
 		return;
 	}
 
@@ -355,8 +355,8 @@ void RedBlackTree::RightRotate(RBTreeNode *item)
 	if(parent->index != item->parent || 
 		(grandParent!=NULL && grandParent->index != parent->parent) ||
 		parent->left != item->index ||
-		(rightChild != NULL && (rightChild->parent != item->index ||
-		item->right != rightChild->index)))
+		(rightChild != NULL && (rightChild->parent != item->index || item->right != rightChild->index))
+	)
 	{
 		if(grandParent != NULL)
 			printf("<< TREE Integrity Error >> [GP %d %d %d %d]\n", grandParent->index, grandParent->parent, grandParent->left, grandParent->right);
@@ -403,7 +403,7 @@ void RedBlackTree::LeftRotate(RBTreeNode *item)
 	}
 	if(item->parent == -1) 
 	{
-		printf("Wrong Rotate P[%d] L[%d] R[%d]", item->parent, item->left, item->right);
+		printf("Wrong Rotate I[%d] P[%d] L[%d] R[%d]", item->index, item->parent, item->left, item->right);
 		return;
 	}
 
@@ -416,8 +416,7 @@ void RedBlackTree::LeftRotate(RBTreeNode *item)
 	if(parent->index != item->parent ||
 		(grandParent!=NULL && grandParent->index != parent->parent) || 
 		parent->right != item->index || 
-		(leftChild != NULL && (leftChild->parent != item->index || 
-		item->left != leftChild->index)))
+		(leftChild != NULL && (leftChild->parent != item->index || item->left != leftChild->index)))
 	{
 		if(grandParent != NULL)
 			printf("<< TREE Integrity Error >> [GP %d %d %d %d]\n", grandParent->index, grandParent->parent, grandParent->left, grandParent->right);
