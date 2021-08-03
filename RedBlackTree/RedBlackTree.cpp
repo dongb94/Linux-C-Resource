@@ -9,10 +9,16 @@ void RedBlackTree::PrintTree(RBTreeNode *node, int depth)
 	sprintf(buffer + depth, "\t[%d](%d,%d)[P %d][LC %d][RC %d][C %d]\n\0", node->index, node->value.Key, node->value.Value, node->parent, node->left, node->right, node->color);
 	std::cout<<buffer;
 
-	sprintf(buffer+depth, "L");
-	PrintTree(GetNode(node->left), depth+1);
-	sprintf(buffer+depth, "R");
-	PrintTree(GetNode(node->right), depth+1);
+	if(node->left != node->index)
+	{
+		sprintf(buffer+depth, "L");
+		PrintTree(GetNode(node->left), depth+1);
+	}
+	if(node->right != node->index)
+	{
+		sprintf(buffer+depth, "R");
+		PrintTree(GetNode(node->right), depth+1);
+	}
 	std::cout<<"------------------\n";
 }
 
@@ -139,7 +145,6 @@ void RedBlackTree::Remove(unsigned long long key)
 		// delete removeTarget;
 
 		m_header->size--;
-
 		if(m_header->size == removeTarget->index)
 		{
 			memset(removeTarget, 0, sizeof(RBTreeNode));
@@ -152,6 +157,11 @@ void RedBlackTree::Remove(unsigned long long key)
 
 			memcpy(removeTarget, updateTarget, sizeof(RBTreeNode));
 			memset(updateTarget, 0, sizeof(RBTreeNode));
+
+			if(removeTarget->index == m_header->rootNode)
+			{
+				m_header->rootNode = index;
+			}
 
 			if(removeTarget->parent != -1)
 			{
@@ -166,7 +176,7 @@ void RedBlackTree::Remove(unsigned long long key)
 				}
 				else
 				{
-					printf("[CRITICAL ERROR] Remove Red-Black Tree : Parant node index not currect [P %d][PL %d][PR %d][Target %d]\n", removeTarget->parent, updateTarget->left, updateTarget->right, m_header->size);
+					printf("[CRITICAL ERROR] Remove Red-Black Tree : Parant node index not currect [P %d][PL %d][PR %d][Target %d:index %d]\n", removeTarget->parent, updateTarget->left, updateTarget->right, m_header->size, removeTarget->index);
 				}
 			}
 
@@ -290,6 +300,18 @@ RBTreeNode* RedBlackTree::find(unsigned long long key)
 	while (pointer != NULL)
 	{
 		//std::cout<<"FindKey : "<<key<<" [C]["<<pointer->value.Key<<"] ["<<(int)(pointer->color)<<"] ["<<pointer->value.Value<<"]"<<pointer<<"\n";
+
+		if(pointer->index == pointer->left || pointer->index == pointer->right) // 무한루프 방지
+		{
+			printf("  %d\n / \\\n%d   %d\n", pointer->index, pointer->left, pointer->right);
+			printf("RedBlackTree Node was Broken\n");
+
+			PrintTree();
+			reset();
+
+			return NULL;
+		}
+
 		if(key == pointer->value.Key)
 		{
 			//std::cout<<"Find Node ["<<pointer->value.Key<<","<<pointer->value.Value<<"]"<<pointer<<"\n";
@@ -358,6 +380,8 @@ void RedBlackTree::RightRotate(RBTreeNode *item)
 		(rightChild != NULL && (rightChild->parent != item->index || item->right != rightChild->index))
 	)
 	{
+		printf("%b %b %b %b", parent->index != item->parent, (grandParent!=NULL && grandParent->index != parent->parent) ,parent->left != item->index , (rightChild != NULL && (rightChild->parent != item->index || item->right != rightChild->index)) );
+		
 		if(grandParent != NULL)
 			printf("<< TREE Integrity Error >> [GP %d %d %d %d]\n", grandParent->index, grandParent->parent, grandParent->left, grandParent->right);
 		printf("<< TREE Integrity Error >> [P %d %d %d %d]\n", parent->index, parent->parent, parent->left, parent->right);
@@ -418,6 +442,8 @@ void RedBlackTree::LeftRotate(RBTreeNode *item)
 		parent->right != item->index || 
 		(leftChild != NULL && (leftChild->parent != item->index || item->left != leftChild->index)))
 	{
+		printf("%b %b %b %b", parent->index != item->parent, (grandParent!=NULL && grandParent->index != parent->parent) ,parent->right != item->index , (leftChild != NULL && (leftChild->parent != item->index || item->left != leftChild->index)) );
+
 		if(grandParent != NULL)
 			printf("<< TREE Integrity Error >> [GP %d %d %d %d]\n", grandParent->index, grandParent->parent, grandParent->left, grandParent->right);
 		printf("<< TREE Integrity Error >> [P %d %d %d %d]\n", parent->index, parent->parent, parent->left, parent->right);
