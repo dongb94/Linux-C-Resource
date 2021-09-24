@@ -48,7 +48,7 @@ int CSharedMemoryTree::CreateArray(key_t KeyValue, unsigned int ArrayNum, unsign
 	m_nSizeNum = ArrayNum;
 	m_nArraySize = ArraySize;
 
-	m_rbTree.init(KeyValue + 1, ArrayNum);
+	m_count = m_rbTree.init(KeyValue + 1, ArrayNum);
 
 	return 1;
 }
@@ -133,9 +133,13 @@ char* CSharedMemoryTree::Add(UINT64 key)
 			dAppLog(LOG_CRI, "Make Array Shm Tree Error [key %d]", shmKey);
 			return NULL;
 		}
+
+		memset(m_pData, 0, m_nArraySize);
 	}
 
 	m_count++;
+
+	printf("ADD TREE [KEY %lld][NODE ( %lld , %lld )][Count %d]\n",key, node->value.Key, node->value.Value, m_count);
 
 	return m_pData;
 }
@@ -145,17 +149,19 @@ int CSharedMemoryTree::Remove(UINT64 key)
 	if (key < 0)
 		return -1;
 
+	RBTreeNode *node = m_rbTree.find(key);
+	if(node==NULL)
+	{
+		return 0;
+	}
+
 	if(m_count <= 0)
 	{
 		dAppLog(LOG_DEBUG, "SharedMemoryTree Remove Error : m_count is 0 [key %llx]",key);
 		return 0;
 	}
 
-	RBTreeNode *node = m_rbTree.find(key);
-	if(node==NULL)
-	{
-		return 0;
-	}
+	printf("REMOVE TREE [KEY %lld][NODE ( %lld , %lld )][Count %d]\n",key, node->value.Key, node->value.Value, m_count-1);
 
 	UINT64 shmKey = node->value.Value;
 

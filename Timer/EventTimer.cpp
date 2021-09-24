@@ -17,6 +17,7 @@ EventTimerWheel::EventTimerWheel()
 	timer->addTimeOut = AddTimeOut;
 	timer->tick = Tick;
 	timer->remove = RemoveEvent;
+	timer->getCurrentTime = GetCurrentTime;
 
 	eventSerial = 1;
 
@@ -31,13 +32,13 @@ EventTimerWheel::EventTimerWheel()
 			// 나중에 clock 을 때고 ftime 기반으로 대체해야함. clock은 오차가 있음.
 			clock_t tick;
 			tick = clock();
-			
+
 			struct timeb m_time;
 			ftime(&m_time);
 			struct tm *tm_ptr;
 			tm_ptr = localtime(&m_time.time);
 			printf("\tTimer Start Time : %d:%d:%d\n", tm_ptr->tm_hour, tm_ptr->tm_min, tm_ptr->tm_sec);
-			
+
 			minuteCurrent = (UINT32)tm_ptr->tm_min;
 			secondCurrent = (UINT32)(tm_ptr->tm_sec * (TIMER_WHEEL_TICK_PER_SECOND));
 			secondCurrent += m_time.millitm * TIMER_WHEEL_TICK_PER_SECOND / 1000;
@@ -59,6 +60,8 @@ EventTimerWheel::EventTimerWheel()
 						return;
 					}
 				}
+
+				usleep(1000);
 			}
 		});
 		t.detach();
@@ -178,6 +181,8 @@ int EventTimerWheel::InitSharedMemory()
 			return -1;
 		}
 	}
+
+	dAppLog(LOG_DEBUG, "Init Event Timer SharedMemory End");
 }
 
 int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 eventVar, bool repeat, int repeatCount, uint64 tid, bool overrriding)
@@ -195,7 +200,6 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 ev
 	{
 		tid = eventSerial + 10000;
 		eventSerial = (eventSerial+1) % (TIMER_WHEEL_EVENT_SIZE-10000);
-		if(tid == 0) tid = 1;
 	}
 
 	res = GetEvent(tid, &newEvent);
@@ -209,7 +213,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 ev
 	{
 		if(overrriding) break;
 		tid = (tid + 1) % TIMER_WHEEL_EVENT_SIZE;
-		if(tid == 0) tid = 1;
+		if(tid == 0) tid = 10000;
 
 		res = GetEvent(tid, &newEvent);
 		if(res < 0)
@@ -259,7 +263,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 ev
 		newEvent->leftMilliSecond = (millisecond % 60000) + (secondCurrent * 1000 / TIMER_WHEEL_TICK_PER_SECOND);
 	}
 	else{
-		int timeTick = millisecond / TIMER_WHEEL_TICK_TIME;
+		int timeTick = millisecond * TIMER_WHEEL_TICK_PER_SECOND / 1000;
 		int secondSlot = (timeTick + *secondPointer) & 0b111;
 
 		HeadKeyPointer = secondHead[secondSlot];
@@ -270,9 +274,9 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 ev
 		}
 
 		newEvent->leftCount = timeTick >> 3;
-		newEvent->leftMilliSecond = millisecond % TIMER_WHEEL_TICK_TIME;
+		newEvent->leftMilliSecond = millisecond % (1000 / TIMER_WHEEL_TICK_PER_SECOND);
 
-		dAppLog(LOG_DEBUG, " Add Time Tick [millisecond %lld][tiemTick %d][secondSlot %d][leftCount %d]", millisecond, timeTick, secondSlot, newEvent->leftCount);
+		dAppLog(LOG_DEBUG, " Add Time Tick [millisecond %lld][tiemTick %d][secondSlot %d][leftCount %d][secondPointer %d]", millisecond, timeTick, secondSlot, newEvent->leftCount, *secondPointer);
 	}
 
 	if(HeadKeyPointer == NULL)
@@ -299,7 +303,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 ev
 		*HeadKeyPointer = tid;
 	}
 
-
+	// printf("Add New Event [tid : %d]\n", newEvent->tid);
 	dAppLog(LOG_DEBUG, "Add New Event [pre %lld][next %lld][tid %lld][millisecond %lld][function %lld][var1 %lld][repeat %d][repeat count %d][%d:%d]", 
 						newEvent->preEventKey, newEvent->nextEventKey, newEvent->tid, newEvent->millisecond, newEvent->functionId, eventVar, newEvent->repeat, newEvent->repeatCount,
 						hour, minute);
@@ -316,6 +320,7 @@ int EventTimerWheel::RemoveEvent(uint64 tid)
 
 	if(st_event == NULL)
 	{
+		printf("NO Remove Event [tid %d]", tid);
 		return -1;
 	}
 
@@ -418,6 +423,7 @@ int EventTimerWheel::Tick()
 		}
 		else
 		{
+			// printf("[TID %lld][Tick %d][left %d]\n", st_event->tid, *secondPointer, st_event->leftCount);
 			st_event->leftCount--;
 		}
 
@@ -528,6 +534,10 @@ int EventTimerWheel::RunEvent(uint64 functionId, uint64 eventVar)
 		TestEvent3();
 		break;
 
+	case TIMER_FUNCTION_EXP_DOUBLE_BUFF_END:
+		ExpDoubleBuffEnd(eventVar);
+		break;
+
 	default:
 		break;
 	}
@@ -551,6 +561,11 @@ int EventTimerWheel::GetEvent(uint64 eventKey, EventStruct **event)
 	}
 
 	return 0;
+}
+
+int EventTimerWheel::GetCurrentTime()
+{
+	return clock()*1000/CLOCKS_PER_SEC;
 }
 
 EventStruct* EventTimerWheel::operator[] (uint64 eventKey)

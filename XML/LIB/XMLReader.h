@@ -37,7 +37,7 @@ public :
 	int ConvertToIntVecter(char* string, unsigned* x, unsigned* y, unsigned* z);
 	int ConvertToFloatVecter(char* string, float* x, float* y, float* z);
 
-	int ConvertToIntegerArray(char* string, void* array, int arraySize = sizeof(int), int maxSize = 255);
+	int ConvertToIntegerArray(char* string, void* array, int elementSize = sizeof(int), int maxSize = 255);
 
 protected : 
 	virtual int SetXmlData() = 0;

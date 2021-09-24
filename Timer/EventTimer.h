@@ -50,6 +50,8 @@ struct TimerRemoteControler
 	int (*tick) (void);
 	int (*stop) (void);
 	int (*remove) (uint64 tid);
+
+	int (*getCurrentTime) (void);
 };
 
 static bool m_start = false;
@@ -71,6 +73,8 @@ public :
 	static int RunEvent(uint64 functionId, uint64 eventVar);
 
 	static int GetEvent(uint64 eventKey, EventStruct **event);
+
+	static int GetCurrentTime();
 
 private :
 

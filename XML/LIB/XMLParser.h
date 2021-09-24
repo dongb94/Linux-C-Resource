@@ -14,6 +14,16 @@
 #define MAP_DATA_XML_PATH "./MapData.xml"
 #define DROP_DATA_XML_PATH "./DropData.xml"
 #define DROP_SET_DATA_XML_PATH "./DropSetData.xml"
+#define REINFORCE_DATA_XML_PATH "./ReinforceData.xml"
+#define DESTROY_DATA_XML_PATH "./DestroyData.xml"
+#define MATERIAL_DATA_XML_PATH "./EquipMaterialData.xml"
+#define DISMANTLE_DATA_XML_PATH "./DismantleData.xml"
+#define RANDOM_OPTION_DATA_XML_PATH "./RandomOptionData.xml"
+#define COMBINE_JEWERLY_DATA_XML_PATH "./CombineJewerlyData.xml"
+#define BUFF_DATA_XML_PATH "./BuffData.xml"
+#define QUEST_DATA_XML_PATH "./QuestData.xml"
+#define QUEST_ACTION_DATA_XML_PATH "./QuestActionData.xml"
+#define REWARD_DATA_XML_PATH "./RewardData.xml"
 extern char FILE_PATH[512];
 extern short DIR_PATH_LEN;
 

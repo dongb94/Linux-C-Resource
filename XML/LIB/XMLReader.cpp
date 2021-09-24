@@ -249,7 +249,7 @@ int XMLReader::ConvertToFloatVecter(char* string, float* x, float* y, float* z)
 	ConvertToFloat((char*)(&string[offset]), z);
 }
 
-int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, int maxSize)
+int XMLReader::ConvertToIntegerArray(char* string, void* array, int elementSize, int maxSize)
 {
 	int startOffset = 0;
 	int offset = 0;
@@ -261,7 +261,7 @@ int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, i
 		char c = string[offset];
 		if(c=='\0')
 		{
-			if(arraySize < 5)
+			if(elementSize < 5)
 			{
 				*((int *)array) = atoi(&string[startOffset]);
 
@@ -276,7 +276,7 @@ int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, i
 		else if(c==',') {
 			string[offset] = '\0';
 
-			if(arraySize < 5)
+			if(elementSize < 5)
 			{
 				*((int *)array) = atoi(&string[startOffset]);
 
@@ -287,7 +287,7 @@ int XMLReader::ConvertToIntegerArray(char* string, void* array, int arraySize, i
 				*((long long *)array) = atoll(&string[startOffset]);
 			}
 
-			array = (char*)array+(arraySize);
+			array = (char*)array+(elementSize);
 			count++;
 			startOffset = offset+1;
 		}
