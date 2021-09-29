@@ -1,5 +1,5 @@
 #include "EventTimer.h"
-
+#include <sched.h>
 
 USHORT EventTimerWheel::eventSerial;
 st_HashedShmHandle EventTimerWheel::m_shmTimerEvent;
@@ -29,9 +29,6 @@ EventTimerWheel::EventTimerWheel()
 
 		std::thread t([=]() 
 		{
-			// 나중에 clock 을 때고 ftime 기반으로 대체해야함. clock은 오차가 있음.
-			clock_t tick;
-			tick = clock();
 
 			struct timeb m_time;
 			ftime(&m_time);
@@ -43,17 +40,21 @@ EventTimerWheel::EventTimerWheel()
 			secondCurrent = (UINT32)(tm_ptr->tm_sec * (TIMER_WHEEL_TICK_PER_SECOND));
 			secondCurrent += m_time.millitm * TIMER_WHEEL_TICK_PER_SECOND / 1000;
 
-			long clockTime;
+			int lastTick = m_time.millitm;
+
+			int clockTime;
 			while(true)
 			{
-				// ftime(&m_time);
-				clockTime = clock();
-				// dAppLog(LOG_DEBUG, "[clock %d]-[tick %d]=[%d]", clockTime, tick, clockTime - tick);
-				// dAppLog(LOG_DEBUG, "Delay %d > %d [TIME : %d]", clockTime - tick, CLOCKS_PER_SEC, clockTime/CLOCKS_PER_SEC);
-				if(clockTime-tick > TIMER_WHEEL_TICK_TIME)
+				ftime(&m_time);
+				clockTime = m_time.millitm;
+				// dAppLog(LOG_DEBUG, "[clock %d]-[lastTick %d]=[%d]", clockTime, lastTick, clockTime - lastTick);
+				// dAppLog(LOG_DEBUG, "Delay %d > %d [TIME : %d]", clockTime - lastTick, CLOCKS_PER_SEC, clockTime/CLOCKS_PER_SEC);
+				// printf("[clock %d]-[lastTick %d]=[%d]\n", clockTime, lastTick, clockTime - lastTick);
+				if(clockTime < lastTick) clockTime += 1000;
+				if(clockTime-lastTick >= TIMER_WHEEL_TICK_TIME)
 				{
 					// dAppLog(LOG_DEBUG, "[clock %d]-[tick %d]=[%d]", clockTime, tick, clockTime - tick);
-					tick += TIMER_WHEEL_TICK_TIME;
+					lastTick = (lastTick+TIMER_WHEEL_TICK_TIME) % 1000;
 					if(timer->tick()<0)
 					{
 						m_start = false;
@@ -61,9 +62,10 @@ EventTimerWheel::EventTimerWheel()
 					}
 				}
 
-				usleep(1000);
+				usleep(10000);
 			}
 		});
+		thread::setScheduling(t, SCHED_FIFO, 10);
 		t.detach();
 	}
 }
@@ -435,6 +437,7 @@ int EventTimerWheel::Tick()
 	secondCurrent = (secondCurrent + 1) % (60 * TIMER_WHEEL_TICK_PER_SECOND);
 	if(secondCurrent != 0) return 0;
 
+	printf("tick minute [%d:%02d:%04d]\n", *hourPointer, minuteCurrent, secondCurrent);
 	HeadKeyPointer = *(minuteHead[*minutePointer]);
 	while(HeadKeyPointer != 0)
 	{

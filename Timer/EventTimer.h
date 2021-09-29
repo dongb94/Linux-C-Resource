@@ -3,7 +3,7 @@
 
 #include <ctime>
 #include <sys/timeb.h>
-#include <thread>
+#include <Thread.h>
 
 #include <lwrite.h>
 #include <hashshm.h>
@@ -17,8 +17,8 @@
 
 #define uint64 unsigned long long
 
-#define TIMER_WHEEL_TICK_PER_SECOND 100
-#define TIMER_WHEEL_TICK_TIME (CLOCKS_PER_SEC/TIMER_WHEEL_TICK_PER_SECOND) // (millisecond) 1000의 약수가 아니면 오차 발생
+#define TIMER_WHEEL_TICK_PER_SECOND 10
+#define TIMER_WHEEL_TICK_TIME (1000/TIMER_WHEEL_TICK_PER_SECOND) // (millisecond) 1000의 약수가 아니면 오차 발생
 #define TIMER_WHEEL_SIZE 8
 #define TIMER_WHEEL_EVENT_SIZE 60000
 #define TIMER_WHEEL_EVENT_SIZE_HOUR 60000
