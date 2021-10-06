@@ -16,7 +16,7 @@
 #define DROP_SET_DATA_XML_PATH "./DropSetData.xml"
 #define REINFORCE_DATA_XML_PATH "./ReinforceData.xml"
 #define DESTROY_DATA_XML_PATH "./DestroyData.xml"
-#define MATERIAL_DATA_XML_PATH "./EquipMaterialData.xml"
+#define MATERIAL_DATA_XML_PATH "./MaterialData.xml"
 #define DISMANTLE_DATA_XML_PATH "./DismantleData.xml"
 #define RANDOM_OPTION_DATA_XML_PATH "./RandomOptionData.xml"
 #define COMBINE_JEWERLY_DATA_XML_PATH "./CombineJewerlyData.xml"

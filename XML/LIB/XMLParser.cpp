@@ -5,6 +5,7 @@ XMLParser::~XMLParser(){}
 
 int XMLParser::SetXmlPath(char* targetXml)
 {
+	memset(FILE_PATH + DIR_PATH_LEN, 0, sizeof(FILE_PATH) - DIR_PATH_LEN);
 	memcpy(FILE_PATH + DIR_PATH_LEN, targetXml, strlen(targetXml));
 	// printf("=== XML Path : %s\n", FILE_PATH);
 	return OpenXmlFile(FILE_PATH);
@@ -47,6 +48,7 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 	m_fileInputStream.open(filePath, ifstream::in); // read only
 
 	if(!m_fileInputStream.is_open()){
+		printf(">>>>>>>>> OPEN XML FAIL : %s  <<<<\n", filePath);
 		return -2;
 	}
 
