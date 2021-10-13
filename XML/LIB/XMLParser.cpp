@@ -41,13 +41,15 @@ int XMLParser::PrintXML(Syntex syntex)
 
 inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 {
-	if(m_fileInputStream.is_open()){
+	if(m_fileInputStream.is_open())
+	{
 		return -1;
 	}
 
 	m_fileInputStream.open(filePath, ifstream::in); // read only
 
-	if(!m_fileInputStream.is_open()){
+	if(!m_fileInputStream.is_open())
+	{
 		printf(">>>>>>>>> OPEN XML FAIL : %s  <<<<\n", filePath);
 		return -2;
 	}
@@ -60,13 +62,21 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 
 	printf("<<<<  Open XML File : %s [len : %d]  >>>>\n", filePath, m_fileLength);
 
+	ReadNext();
+	ReadNext();
+
 	return 0;
 }
 
 inline int XMLParser::ReadNext()
 {
 	// printf(">>> read count : %d / %d\n", m_readCount, m_fileLength);
-	if(m_readCount >= m_fileLength) return -1; // end of file
+	if(m_readCount >= m_fileLength) {
+		memset(buffer, 0, XML_READ_BUFFER_SIZE);
+		buffer[0] = EOF;
+		SetBuffer(buffer, XML_READ_BUFFER_SIZE);
+		return -1; // end of file
+	}
 
 	int readSize;
 	if(m_readCount + XML_READ_BUFFER_SIZE > m_fileLength) readSize = m_fileLength - m_readCount;
@@ -77,7 +87,7 @@ inline int XMLParser::ReadNext()
 		printf("Read Err ReadSize : %d\n", readSize);
 		return -2; // Read Err
 	}
-	m_readCount += XML_READ_BUFFER_SIZE;
+	m_readCount += readSize;
 
 	SetBuffer(buffer, XML_READ_BUFFER_SIZE);
 
@@ -281,15 +291,20 @@ inline int XMLParser::GetNextToken(Token* pToken)
 {
 	int res;
 	res = m_lexer.GetNextToken(pToken);
-	if(res < 0) {
-		if(ReadNext()<0) return -1;
+	if(res == -READ_NEXT_SIGNAL)
+	{
+		ReadNext();
 		return GetNextToken(pToken);
 	}
-	// log
-	// if(res == WORD)
-	// 	printf(" Next Token = %d [%s]\n", res, pToken->string);
-	// else
-	// 	printf(" Next Token = %d\n", res);
+	if(res == EOF) {
+		return EOF;
+	}
+	/* log
+	if(res == WORD)
+		printf(" Next Token = %d [%s]\n", res, pToken->string);
+	else
+		printf(" Next Token = %d\n", res);
+	*/
 	return res;
 }
 

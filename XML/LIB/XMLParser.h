@@ -5,7 +5,6 @@
 #define MAKE_SHM_KEY_FROM_INDEX(index) (((unsigned long long)index)<<48)+1
 #endif
 
-#define XML_READ_BUFFER_SIZE	65535
 #define XML_MAX_NUMBER_OF_VALUE	50
 
 #define MONSTER_BASE_DATA_XML_PATH "./MonsterData.xml"

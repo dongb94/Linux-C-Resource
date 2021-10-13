@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define XML_READ_BUFFER_SIZE	65535
+#define READ_NEXT_SIGNAL		2
+
 enum TokenType
 {
 	DEFAULT,
@@ -40,7 +43,7 @@ class XMLLexer
 private:
 	unsigned int m_pointer;
 	unsigned int m_bufferSize;
-	char* m_buffer;
+	char m_buffer[XML_READ_BUFFER_SIZE * 2];
 	char m_tempBuffer[650];
 
 	inline bool CheckDoubleDash();
