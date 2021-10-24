@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<root>
+  <record>
+    <KEY>1000101</KEY>
+    <ActionType>Talk</ActionType>
+    <QuestSubTitle>대화</QuestSubTitle>
+    <GoalCount>1</GoalCount>
+    <TalkTableIndex>1002</TalkTableIndex>
+    <TargetScene>0</TargetScene>
+    <TargetDistance>0</TargetDistance>
+    <TargetPosition>0.0, 0.0, 0.0</TargetPosition>
+    <Sequence>1</Sequence>
+  </record>
+  <record>
+    <KEY>1000102</KEY>
+    <ActionType>MonsterKill</ActionType>
+    <QuestSubTitle>붉은 버섯 5마리 처치</QuestSubTitle>
+    <TargetIndexList>1117</TargetIndexList>
+    <GoalCount>5</GoalCount>
+    <TalkTableIndex>1003</TalkTableIndex>
+    <TargetScene>401</TargetScene>
+    <TargetDistance>10</TargetDistance>
+    <TargetPosition>-104.9, 0.0, 140.7</TargetPosition>
+    <Sequence>2</Sequence>
+  </record>
+</root>

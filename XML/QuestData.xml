@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Table>
+	<!-- test-->
+	<!-- <Record>
+		<KEY>1000</KEY>
+		<QuestType>Main</QuestType>
+		<Quests>101000 / 101001 / 101002</Quests>
+	</Record>-->
+
+	<!-- 팝툴 읽기 테스트 -->
+	<!-- QuestPlacementData_<QuestAction> -->
+	<!-- QuestPlacementData_10000 -->
+	<Record>
+		<KEY>10000</KEY>
+		<QuestType>Main</QuestType>
+		<QuestName>팝툴 테스트</QuestName>
+		<QuestActionCount>2</QuestActionCount>
+		<QuestAction>1000001 / 1000002</QuestAction>
+		<PreQuest></PreQuest>
+		<NextQuest>10001</NextQuest>
+		<Reward>2</Reward>
+	</Record>
+	<Record>
+		<KEY>10001</KEY>
+		<QuestType>Main</QuestType>
+		<QuestName>팝툴 테스트2</QuestName>
+		<QuestActionCount>3</QuestActionCount>
+		<QuestAction>1000101 / 1000102 / 1000103</QuestAction>
+		<PreQuest>10000</PreQuest>
+		<NextQuest>10002</NextQuest>
+		<Reward>2</Reward>
+	</Record>
+	<Record>
+		<KEY>10002</KEY>
+		<QuestType>Main</QuestType>
+		<QuestName>팝툴 테스트3</QuestName>
+		<QuestActionCount>2</QuestActionCount>
+		<QuestAction>1000201 / 1000202</QuestAction>
+		<PreQuest>10001</PreQuest>
+		<NextQuest>10003</NextQuest>
+		<Reward>2</Reward>
+	</Record>
+	<Record>
+		<KEY>10003</KEY>
+		<QuestType>Main</QuestType>
+		<QuestName>팝툴 테스트4</QuestName>
+		<QuestActionCount>1</QuestActionCount>
+		<QuestAction>1000301</QuestAction>
+		<PreQuest>10002</PreQuest>
+		<NextQuest>10004</NextQuest>
+		<Reward>2</Reward>
+	</Record>
+	<Record>
+		<KEY>10004</KEY>
+		<QuestType>Main</QuestType>
+		<QuestName>팝툴 테스트5</QuestName>
+		<QuestActionCount>2</QuestActionCount>
+		<QuestAction>1000401 / 1000402</QuestAction>
+		<PreQuest>10003</PreQuest>
+		<NextQuest>10005</NextQuest>
+		<Reward>2</Reward>
+	</Record>
+</Table>

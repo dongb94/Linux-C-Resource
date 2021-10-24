@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<root>
+  <record>
+    <KEY>1000201</KEY>
+    <ActionType>Talk</ActionType>
+    <QuestSubTitle>대화</QuestSubTitle>
+    <GoalCount>1</GoalCount>
+    <TalkTableIndex>1004</TalkTableIndex>
+    <TargetScene>0</TargetScene>
+    <TargetDistance>0</TargetDistance>
+    <TargetPosition>0.0, 0.0, 0.0</TargetPosition>
+    <Sequence>1</Sequence>
+  </record>
+  <record>
+    <KEY>1000202</KEY>
+    <ActionType>AddItem</ActionType>
+    <QuestSubTitle>푸른버섯,혼종버섯을 처치 후 나오는 포션3개 전달</QuestSubTitle>
+    <TargetIndexList>20001010</TargetIndexList>
+    <GoalCount>5</GoalCount>
+    <TalkTableIndex>1005</TalkTableIndex>
+    <TargetScene>401</TargetScene>
+    <TargetDistance>15</TargetDistance>
+    <TargetPosition>-126.8, 0.0, 138.0</TargetPosition>
+    <Sequence>2</Sequence>
+  </record>
+</root>

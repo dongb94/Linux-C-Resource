@@ -7,7 +7,7 @@ int XMLParser::SetXmlPath(char* targetXml)
 {
 	memset(FILE_PATH + DIR_PATH_LEN, 0, sizeof(FILE_PATH) - DIR_PATH_LEN);
 	memcpy(FILE_PATH + DIR_PATH_LEN, targetXml, strlen(targetXml));
-	// printf("=== XML Path : %s\n", FILE_PATH);
+	printf("=== XML Path : %s\n", FILE_PATH);
 	return OpenXmlFile(FILE_PATH);
 }
 
@@ -32,6 +32,14 @@ int XMLParser::PrintXML(Syntex syntex)
 		case VALUE:
 		{
 			printf("- %s\n", syntex.value);
+		}	break;
+		case REMARK:
+		{
+			printf("<!--%s-->\n", syntex.value);
+		}	break;
+		case HEADER:
+		{
+			printf("<?%s?>\n", syntex.value);
 		}	break;
 		default:
 			break;
@@ -60,8 +68,9 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 	m_fileLength = m_fileInputStream.tellg();
 	m_fileInputStream.seekg(0, m_fileInputStream.beg);
 
-	printf("<<<<  Open XML File : %s [len : %d]  >>>>\n", filePath, m_fileLength);
+	// printf("<<<<  Open XML File : %s [len : %d]  >>>>\n", filePath, m_fileLength);
 
+	m_lexer.ResetBuffer();
 	ReadNext();
 	ReadNext();
 
@@ -134,6 +143,7 @@ int XMLParser::GetNextValueGroup(Value** ppValueGroup)
 					else if(m_syntexlevel == 0)
 					{
 						// printf("XML Read Complete\n");
+						m_fileInputStream.close();
 						return -1;
 					}
 				}	break;
@@ -149,6 +159,7 @@ int XMLParser::GetNextValueGroup(Value** ppValueGroup)
 				}	break;
 				case REMARK:
 				case HEADER:
+					if(PrintXMLData) PrintXML(currentSyntex);
 					break;
 				default:
 				{
@@ -179,17 +190,16 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 
 	while(true){
 
-		// '<'가 아니면 읽는다.
-		if(nextToken.type != LQ)
-		{
-			res = GetNextToken(&nextToken);
-			if(res == -1) {
-				return -1;
-			}
-		}
-
 		if(syntex->type == SYNTEX_ERROR)	// 문맥 파악
 		{
+			if(nextToken.type != LQ)
+			{
+				res = GetNextToken(&nextToken);
+				if(res == -1) {
+					return -1;
+				}
+			}
+
 			preToken = nextToken;
 
 			if(nextToken.type == LQ)
@@ -239,6 +249,11 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 		{
 			// log
 			// printf("Syntex : %d\n", syntex->type);
+			res = GetNextToken(&nextToken);
+			if(res == -1) {
+				return -1;
+			}
+
 			switch (syntex->type)
 			{
 			case VALUE:
@@ -271,12 +286,28 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 				}
 				break;
 			case REMARK:
-			case HEADER: // 현재 해더처리 하지 않음
+			{
 				if(nextToken.type == RQ)
 				{
-					return syntex->type;
+					if(preToken.type == DD)
+					{
+						syntex->value = preToken.string;
+						return syntex->type;
+					}
 				}
-				break;
+			}	break;
+			case HEADER: // 현재 해더처리 하지 않음
+			{
+				if(nextToken.type == RQ)
+				{
+					if(preToken.type == QM)
+					{	
+						syntex->value = preToken.string;
+						return syntex->type;
+					}
+
+				}
+			}	break;
 			default:
 				break;
 			}

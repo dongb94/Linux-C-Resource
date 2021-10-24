@@ -1,10 +1,13 @@
 #include <XMLLexer.h>
 
-XMLLexer::XMLLexer(/* args */)
+XMLLexer::XMLLexer(/* args */){}
+XMLLexer::~XMLLexer(){}
+
+int XMLLexer::ResetBuffer()
 {
+	memset(m_buffer, 0 ,sizeof(m_buffer));
 	m_pointer = 0;
 }
-XMLLexer::~XMLLexer(){}
 
 int XMLLexer::SetBuffer(char* buffer, unsigned int bufferSize)
 {

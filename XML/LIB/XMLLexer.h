@@ -52,6 +52,7 @@ public:
 	XMLLexer(/* args */);
 	~XMLLexer();
 
+	int ResetBuffer();
 	int SetBuffer(char* buffer, unsigned int bufferSize);
 	int GetNextToken(Token* pToken);
 };

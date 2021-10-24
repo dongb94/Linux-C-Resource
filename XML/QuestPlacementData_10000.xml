@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<root>
+	<record>
+		<KEY>1000001</KEY>
+		<ActionType>Talk</ActionType>
+		<QuestSubTitle>대화</QuestSubTitle>
+		<GoalCount>1</GoalCount>
+		<TalkTableIndex>1000</TalkTableIndex>
+		<TargetScene>0</TargetScene>
+		<TargetDistance>0</TargetDistance>
+		<TargetPosition>0.0, 0.0, 0.0</TargetPosition>
+		<Sequence>1</Sequence>
+	</record>
+	<record>
+		<KEY>1000002</KEY>
+		<ActionType>NpcFind</ActionType>
+		<QuestSubTitle>히스 찾아가기</QuestSubTitle>
+		<TargetIndexList>4</TargetIndexList>
+		<GoalCount>1</GoalCount>
+		<TalkTableIndex>1001</TalkTableIndex>
+		<TargetScene>401</TargetScene>
+		<TargetDistance>0</TargetDistance>
+		<TargetPosition>0.0, 0.0, 0.0</TargetPosition>
+		<Sequence>2</Sequence>
+	</record>
+</root>
