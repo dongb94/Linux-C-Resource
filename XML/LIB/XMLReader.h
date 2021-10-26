@@ -40,9 +40,8 @@ public :
 	int ConvertToIntegerArray(char* string, void* array, int elementSize = sizeof(int), int maxSize = 255);
 
 protected : 
-	int SetXmlData(){}
-	int SerXmlData(int serial, int index){}
-
+	virtual int SetXmlData() = 0;
+	
 	st_HashedShmHandle m_smXMLData;
 
 	XMLParser m_parser;

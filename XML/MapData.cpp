@@ -28,6 +28,7 @@ int MapData::SetXmlData()
 		return res;
 	}
 
+	int i=0;
 	while(true)
 	{
 		res = m_parser.GetNextValueGroup(&valueList);
@@ -39,21 +40,21 @@ int MapData::SetXmlData()
 
 		MAP_XML_DATA mapData;
 
-		printf("valueList length : %d\n", res);
-		for(int i=0; i<res; i++)
+		// printf("valueList length : %d\n", res);
+		for(int j=0; j<res; j++)
 		{
-			if(!strcmp(valueList[i].name,"KEY"))						ConvertToInt(valueList[i].value, &mapData.Key);
-			else if(!strcmp(valueList[i].name,"floor"))					ConvertToInt(valueList[i].value, &mapData.floor);
-			else if(!strcmp(valueList[i].name,"mapName"))				strcpy(mapData.mapName, valueList[i].value);
-			else if(!strcmp(valueList[i].name,"worldPosition"))			ConvertToIntVecter(valueList[i].value, &mapData.worldX, &mapData.worldY, &mapData.worldZ);
-			else if(!strcmp(valueList[i].name,"warpPosition"))			;
-			else 														printf("====== Variable name wrong : %s [%s]\n", valueList[i].name, valueList[i].value);
+			if(!strcmp(valueList[j].name,"KEY"))						ConvertToInt(valueList[j].value, &mapData.Key);
+			else if(!strcmp(valueList[j].name,"floor"))					ConvertToInt(valueList[j].value, &mapData.floor);
+			else if(!strcmp(valueList[j].name,"mapName"))				strcpy(mapData.mapName, valueList[j].value);
+			else if(!strcmp(valueList[j].name,"worldPosition"))			ConvertToIntVecter(valueList[j].value, &mapData.worldX, &mapData.worldY, &mapData.worldZ);
+			else if(!strcmp(valueList[j].name,"warpPosition"))			;
+			else 														printf("====== Variable name wrong : %s [%s]\n", valueList[j].name, valueList[j].value);
 		}
 
-		printf("mapData key : %d\n", mapData.Key);
+		printf(" •••• MapData set [%d]%d\n", i, mapData.Key);
 		//Build_hashed_shm_key(&m_smXMLData, mapData.Key);
 
-		UINT64 ullMonsterKey = MAKE_SHM_KEY_FROM_INDEX(mapData.Key);
+		UINT64 ullMonsterKey = MAKE_SHM_KEY_FROM_INDEX(i);
 		MAP_XML_DATA* mapXMLData;
 
 		res = Get_hashed_shm(&m_smXMLData, ullMonsterKey, (void**)&mapXMLData);
@@ -67,12 +68,7 @@ int MapData::SetXmlData()
 			}
 		}
 
-		mapXMLData->Key = mapData.Key;
-		mapXMLData->floor = mapData.floor;
-		memcpy(mapXMLData->mapName, mapData.mapName, 19);
-		mapXMLData->worldX = mapData.worldX;
-		mapXMLData->worldY = mapData.worldY;
-		mapXMLData->worldZ = mapData.worldZ;
-
+		memcpy(mapXMLData, &mapData, sizeof(MAP_XML_DATA));
+		i++;
 	}
 }

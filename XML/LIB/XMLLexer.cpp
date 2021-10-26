@@ -3,31 +3,19 @@
 XMLLexer::XMLLexer(/* args */){}
 XMLLexer::~XMLLexer(){}
 
-int XMLLexer::ResetBuffer()
-{
-	memset(m_buffer, 0 ,sizeof(m_buffer));
-	m_pointer = 0;
-}
-
 int XMLLexer::SetBuffer(char* buffer, unsigned int bufferSize)
 {
-	memcpy(m_buffer, m_buffer + XML_READ_BUFFER_SIZE, XML_READ_BUFFER_SIZE);
-	memcpy(m_buffer + XML_READ_BUFFER_SIZE, buffer, bufferSize);
-	
-	if(m_pointer >= XML_READ_BUFFER_SIZE) m_pointer -= XML_READ_BUFFER_SIZE;
-	
+	m_buffer = buffer;
+	m_bufferSize = bufferSize;
+	m_pointer = 0;
 	return 0;
 }
 
 int XMLLexer::GetNextToken(Token* pToken)
 {
 	if(m_buffer == NULL) return EOF;
-	if(m_pointer >= XML_READ_BUFFER_SIZE)
-	{
-		return -READ_NEXT_SIGNAL;
-	}
 
-	while(true)
+	while(m_pointer < m_bufferSize)
 	{
 		char nextChar = m_buffer[m_pointer];
 		m_pointer++;
@@ -76,6 +64,11 @@ int XMLLexer::GetNextToken(Token* pToken)
 			m_tempBuffer[0] = nextChar;
 			char length = GetWord();
 
+			if(length < 0) {
+				pToken->type = SLICE_WORD;
+				length = -length;
+			}
+
 			pToken->string = new char[length+1];
 			memcpy(pToken->string, m_tempBuffer, length);
 			pToken->string[length] = '\0';
@@ -90,12 +83,15 @@ int XMLLexer::GetNextToken(Token* pToken)
 }
 
 inline bool XMLLexer::CheckDoubleDash(){
-	return m_buffer[m_pointer] == '-';
+	if(m_pointer < m_bufferSize)
+		return m_buffer[m_pointer] == '-';
+	else
+		return false;
 }
 
 inline char XMLLexer::GetWord(){
-	unsigned char length = 1; // 0번지가 채워진 상태로 온다.
-	while(true)
+	unsigned char length = 1;
+	while(m_pointer < m_bufferSize)
 	{
 		char nextChar = m_buffer[m_pointer];
 		switch (nextChar)
@@ -110,9 +106,10 @@ inline char XMLLexer::GetWord(){
 		case '!':
 		case '?':
 		case '/':
-		case '-':
-		case EOF:
+		case '-':	
 			return length;
+		case EOF:
+			return -length;
 		default:
 			m_tempBuffer[length] = nextChar;
 			m_pointer++;
@@ -121,5 +118,5 @@ inline char XMLLexer::GetWord(){
 		}
 	}
 	
-	return -1;
+	return length;
 }

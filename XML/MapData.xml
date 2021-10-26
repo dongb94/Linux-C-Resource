@@ -1,223 +1,272 @@
 <!-- KEY 오름차순 정렬 -->
 <root>
-    <map>
-        <KEY>100</KEY>
+	<map>
+		<KEY>100</KEY>
 		<floor>4</floor>
-        <mapName>100</mapName>
+		<mapName>100</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>101</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>101</KEY>
 		<floor>1</floor>
-        <mapName>101</mapName>
+		<mapName>101</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>102</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>102</KEY>
 		<floor>1</floor>
-        <mapName>102</mapName>
+		<mapName>102</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>103</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>103</KEY>
 		<floor>1</floor>
-        <mapName>103</mapName>
+		<mapName>103</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>104</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>104</KEY>
 		<floor>1</floor>
-        <mapName>Zone104</mapName>
+		<mapName>Zone104</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>105</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>105</KEY>
 		<floor>1</floor>
-        <mapName>Zone105</mapName>
+		<mapName>Zone105</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>106</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>106</KEY>
 		<floor>1</floor>
-        <mapName>Zone106</mapName>
+		<mapName>Zone106</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>107</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>107</KEY>
 		<floor>1</floor>
-        <mapName>Zone107</mapName>
+		<mapName>Zone107</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>108</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>108</KEY>
 		<floor>1</floor>
-        <mapName>Zone108</mapName>
+		<mapName>Zone108</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>109</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>109</KEY>
 		<floor>1</floor>
-        <mapName>Zone109</mapName>
+		<mapName>Zone109</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
 
-    <map>
-        <KEY>401</KEY>
+	<map>
+		<KEY>401</KEY>
 		<floor>4</floor>
-        <mapName>Zone1</mapName>
+		<mapName>Twn</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>402, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>402</KEY>
+		<warpPosition>402, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>402</KEY>
 		<floor>1</floor>
-        <mapName>Zone1</mapName>
+		<mapName>Zone1</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>401, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>403</KEY>
+		<warpPosition>401, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>403</KEY>
 		<floor>1</floor>
-        <mapName>Zone1</mapName>
+		<mapName>Zone1</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>401, 47913, 7433, 58104</warpPosition>
-    </map>
+		<warpPosition>401, 47913, 7433, 58104</warpPosition>
+	</map>
 
-    <map>
-        <KEY>600</KEY>
+	<map>
+		<KEY>600</KEY>
 		<floor>4</floor>
-        <mapName>Zone600</mapName>
+		<mapName>Zone600</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>601</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>601</KEY>
 		<floor>1</floor>
-        <mapName>Zone601</mapName>
+		<mapName>Zone601</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>602</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>602</KEY>
 		<floor>1</floor>
-        <mapName>Zone602</mapName>
+		<mapName>Zone602</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>603</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>603</KEY>
 		<floor>1</floor>
-        <mapName>Zone603</mapName>
+		<mapName>Zone603</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>604</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>604</KEY>
 		<floor>1</floor>
-        <mapName>Zone604</mapName>
+		<mapName>Zone604</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>605</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>605</KEY>
 		<floor>1</floor>
-        <mapName>Zone605</mapName>
+		<mapName>Zone605</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>606</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>606</KEY>
 		<floor>1</floor>
-        <mapName>Zone606</mapName>
+		<mapName>Zone606</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>607</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>607</KEY>
 		<floor>1</floor>
-        <mapName>Zone607</mapName>
+		<mapName>Zone607</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>608</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>608</KEY>
 		<floor>1</floor>
-        <mapName>Zone608</mapName>
+		<mapName>Zone608</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
 
-    <map>
-        <KEY>901</KEY>
+	<map>
+		<KEY>901</KEY>
 		<floor>1</floor>
-        <mapName>RaidoGevo</mapName>
+		<mapName>RaidoGevo</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map><map>
-        <KEY>902</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map><map>
+		<KEY>902</KEY>
 		<floor>1</floor>
-        <mapName>MagicWorld</mapName>
+		<mapName>MagicWorld</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
 
-    <map>
-        <KEY>1002</KEY>
+	<map>
+		<KEY>1002</KEY>
 		<floor>4</floor>
-        <mapName>1002</mapName>
+		<mapName>1002</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>1003</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1003</KEY>
 		<floor>1</floor>
-        <mapName>1003</mapName>
+		<mapName>1003</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>1004</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1004</KEY>
 		<floor>1</floor>
-        <mapName>1004</mapName>
+		<mapName>1004</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>1005</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1005</KEY>
 		<floor>1</floor>
-        <mapName>1005</mapName>
+		<mapName>1005</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>1006</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1006</KEY>
 		<floor>1</floor>
-        <mapName>Zone1006</mapName>
+		<mapName>Zone1006</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>1007</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1007</KEY>
 		<floor>1</floor>
-        <mapName>Zone1007</mapName>
+		<mapName>Zone1007</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
-    <map>
-        <KEY>1010</KEY>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1010</KEY>
 		<floor>1</floor>
-        <mapName>Zone1010</mapName>
+		<mapName>Zone1010</mapName>
 		<worldPosition>100,100,100</worldPosition>
-        <warpPosition>0, 47913, 7433, 58104</warpPosition>
-    </map>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1301</KEY>
+		<floor>1</floor>
+		<mapName>Zone1010</mapName>
+		<worldPosition>100,100,100</worldPosition>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1302</KEY>
+		<floor>1</floor>
+		<mapName>Zone1010</mapName>
+		<worldPosition>100,100,100</worldPosition>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1303</KEY>
+		<floor>1</floor>
+		<mapName>Zone1010</mapName>
+		<worldPosition>100,100,100</worldPosition>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1304</KEY>
+		<floor>1</floor>
+		<mapName>Tutorial</mapName>
+		<worldPosition>100,100,100</worldPosition>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1305</KEY>
+		<floor>1</floor>
+		<mapName>Zone1010</mapName>
+		<worldPosition>100,100,100</worldPosition>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1306</KEY>
+		<floor>1</floor>
+		<mapName>Zone1010</mapName>
+		<worldPosition>100,100,100</worldPosition>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
+	<map>
+		<KEY>1307</KEY>
+		<floor>1</floor>
+		<mapName>Zone1010</mapName>
+		<worldPosition>100,100,100</worldPosition>
+		<warpPosition>0, 47913, 7433, 58104</warpPosition>
+	</map>
 </root>

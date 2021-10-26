@@ -17,8 +17,11 @@ OPTIMIZE    = -g -Wall
 
 CFLAGS		= $(OPTIMIZE) $(INCLUDES) $(DEBUG) -g
 
-SRCS		= MapData.cpp MapListData.cpp MonsterData.cpp MonsterPlacementData.cpp Main.cpp
-				
+SRCS		= MapData.cpp MonsterData.cpp MonsterPlacementData.cpp Main.cpp \
+				DropData.cpp DropSetData.cpp DestroyData.cpp DismantleData.cpp \
+				ReinforceData.cpp MaterialData.cpp QuestData.cpp RandomOptionData.cpp \
+				CombineJewerlyData.cpp BuffData.cpp
+
 TARGET		= XML_DATA_SET
 
 OBJS		= $(SRCS:.cpp=.o)
@@ -47,8 +50,6 @@ MAKEFILE	= Makefile
 
 
 all: $(TARGET)
-
-
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(LIBRARY) $(LDFLAGS)
@@ -82,5 +83,5 @@ gdb :
 	gdb ./$(TARGET)
 
 log :
-	cat ../../../LOG/$(TARGET)/DEBUG/debuglog.0
+	cat /RPG_Server/LOG/$(TARGET)/DEBUG/debuglog.0
 # DO NOT DELETE THIS LINE -- make depend depends on it.

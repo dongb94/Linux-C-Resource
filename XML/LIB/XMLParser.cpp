@@ -5,9 +5,8 @@ XMLParser::~XMLParser(){}
 
 int XMLParser::SetXmlPath(char* targetXml)
 {
-	memset(FILE_PATH + DIR_PATH_LEN, 0, sizeof(FILE_PATH) - DIR_PATH_LEN);
 	memcpy(FILE_PATH + DIR_PATH_LEN, targetXml, strlen(targetXml));
-	printf("=== XML Path : %s\n", FILE_PATH);
+	// printf("=== XML Path : %s\n", FILE_PATH);
 	return OpenXmlFile(FILE_PATH);
 }
 
@@ -33,14 +32,6 @@ int XMLParser::PrintXML(Syntex syntex)
 		{
 			printf("- %s\n", syntex.value);
 		}	break;
-		case REMARK:
-		{
-			printf("<!--%s-->\n", syntex.value);
-		}	break;
-		case HEADER:
-		{
-			printf("<?%s?>\n", syntex.value);
-		}	break;
 		default:
 			break;
 	}
@@ -49,16 +40,13 @@ int XMLParser::PrintXML(Syntex syntex)
 
 inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 {
-	if(m_fileInputStream.is_open())
-	{
+	if(m_fileInputStream.is_open()){
 		return -1;
 	}
 
 	m_fileInputStream.open(filePath, ifstream::in); // read only
 
-	if(!m_fileInputStream.is_open())
-	{
-		printf(">>>>>>>>> OPEN XML FAIL : %s  <<<<\n", filePath);
+	if(!m_fileInputStream.is_open()){
 		return -2;
 	}
 
@@ -68,11 +56,7 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 	m_fileLength = m_fileInputStream.tellg();
 	m_fileInputStream.seekg(0, m_fileInputStream.beg);
 
-	// printf("<<<<  Open XML File : %s [len : %d]  >>>>\n", filePath, m_fileLength);
-
-	m_lexer.ResetBuffer();
-	ReadNext();
-	ReadNext();
+	printf("<<<<  Open XML File : %s [len : %d]  >>>>\n", filePath, m_fileLength);
 
 	return 0;
 }
@@ -80,12 +64,7 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 inline int XMLParser::ReadNext()
 {
 	// printf(">>> read count : %d / %d\n", m_readCount, m_fileLength);
-	if(m_readCount >= m_fileLength) {
-		memset(buffer, 0, XML_READ_BUFFER_SIZE);
-		buffer[0] = EOF;
-		SetBuffer(buffer, XML_READ_BUFFER_SIZE);
-		return -1; // end of file
-	}
+	if(m_readCount >= m_fileLength) return -1; // end of file
 
 	int readSize;
 	if(m_readCount + XML_READ_BUFFER_SIZE > m_fileLength) readSize = m_fileLength - m_readCount;
@@ -96,7 +75,7 @@ inline int XMLParser::ReadNext()
 		printf("Read Err ReadSize : %d\n", readSize);
 		return -2; // Read Err
 	}
-	m_readCount += readSize;
+	m_readCount += XML_READ_BUFFER_SIZE;
 
 	SetBuffer(buffer, XML_READ_BUFFER_SIZE);
 
@@ -143,7 +122,6 @@ int XMLParser::GetNextValueGroup(Value** ppValueGroup)
 					else if(m_syntexlevel == 0)
 					{
 						// printf("XML Read Complete\n");
-						m_fileInputStream.close();
 						return -1;
 					}
 				}	break;
@@ -159,7 +137,6 @@ int XMLParser::GetNextValueGroup(Value** ppValueGroup)
 				}	break;
 				case REMARK:
 				case HEADER:
-					if(PrintXMLData) PrintXML(currentSyntex);
 					break;
 				default:
 				{
@@ -190,16 +167,17 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 
 	while(true){
 
+		// '<'가 아니면 읽는다.
+		if(nextToken.type != LQ)
+		{
+			res = GetNextToken(&nextToken);
+			if(res == -1) {
+				return -1;
+			}
+		}
+
 		if(syntex->type == SYNTEX_ERROR)	// 문맥 파악
 		{
-			if(nextToken.type != LQ)
-			{
-				res = GetNextToken(&nextToken);
-				if(res == -1) {
-					return -1;
-				}
-			}
-
 			preToken = nextToken;
 
 			if(nextToken.type == LQ)
@@ -249,11 +227,6 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 		{
 			// log
 			// printf("Syntex : %d\n", syntex->type);
-			res = GetNextToken(&nextToken);
-			if(res == -1) {
-				return -1;
-			}
-
 			switch (syntex->type)
 			{
 			case VALUE:
@@ -286,28 +259,12 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 				}
 				break;
 			case REMARK:
-			{
-				if(nextToken.type == RQ)
-				{
-					if(preToken.type == DD)
-					{
-						syntex->value = preToken.string;
-						return syntex->type;
-					}
-				}
-			}	break;
 			case HEADER: // 현재 해더처리 하지 않음
-			{
 				if(nextToken.type == RQ)
 				{
-					if(preToken.type == QM)
-					{	
-						syntex->value = preToken.string;
-						return syntex->type;
-					}
-
+					return syntex->type;
 				}
-			}	break;
+				break;
 			default:
 				break;
 			}
@@ -322,20 +279,15 @@ inline int XMLParser::GetNextToken(Token* pToken)
 {
 	int res;
 	res = m_lexer.GetNextToken(pToken);
-	if(res == -READ_NEXT_SIGNAL)
-	{
-		ReadNext();
+	if(res < 0) {
+		if(ReadNext()<0) return -1;
 		return GetNextToken(pToken);
 	}
-	if(res == EOF) {
-		return EOF;
-	}
-	/* log
-	if(res == WORD)
-		printf(" Next Token = %d [%s]\n", res, pToken->string);
-	else
-		printf(" Next Token = %d\n", res);
-	*/
+	// log
+	// if(res == WORD)
+	// 	printf(" Next Token = %d [%s]\n", res, pToken->string);
+	// else
+	// 	printf(" Next Token = %d\n", res);
 	return res;
 }
 
