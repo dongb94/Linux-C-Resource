@@ -139,7 +139,7 @@ char* CSharedMemoryTree::Add(UINT64 key)
 
 	m_count++;
 
-	printf("ADD TREE [KEY %lld][NODE ( %lld , %lld )][Count %d]\n",key, node->value.Key, node->value.Value, m_count);
+	// printf("ADD TREE [KEY %lld][NODE ( %lld , %lld )][Count %d]\n",key, node->value.Key, node->value.Value, m_count);
 
 	return m_pData;
 }
@@ -161,7 +161,7 @@ int CSharedMemoryTree::Remove(UINT64 key)
 		return 0;
 	}
 
-	printf("REMOVE TREE [KEY %lld][NODE ( %lld , %lld )][Count %d]\n",key, node->value.Key, node->value.Value, m_count-1);
+	// printf("REMOVE TREE [KEY %lld][NODE ( %lld , %lld )][Count %d]\n",key, node->value.Key, node->value.Value, m_count-1);
 
 	UINT64 shmKey = node->value.Value;
 
@@ -192,9 +192,12 @@ int CSharedMemoryTree::Remove(UINT64 key)
 		return 0;
 	}
 
+	// printf("\t1(%llx,%lld)<-(%llx,%lld)\n", node->value.Key, node->value.Value, lastNode->value.Key, lastNode->value.Value);
 	memcpy(m_pData, updateData, m_nArraySize);
 	lastNode->value.Value = shmKey;
+	// printf("\t2(%llx,%lld)<-(%llx,%lld)\n", node->value.Key, node->value.Value, lastNode->value.Key, lastNode->value.Value);
 	m_rbTree.Remove(key);
+	// printf("\t3(%llx,%lld)<-(%llx,%lld)\n", node->value.Key, node->value.Value, lastNode->value.Key, lastNode->value.Value);
 
 	m_count--;
 

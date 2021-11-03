@@ -182,7 +182,7 @@ void RedBlackTree::Remove(unsigned long long key)
 				}
 				else
 				{
-					printf("[CRITICAL ERROR] Remove Red-Black Tree : Parant node index not currect [P %d][PL %d][PR %d][Target %d:index %d]\n", removeTarget->parent, updateTarget->left, updateTarget->right, m_header->size, removeTarget->index);
+					printf("[CRITICAL ERROR] Remove Red-Black Tree : Parent node index not currect [P %d][PL %d][PR %d][Target %d:index %d]\n", removeTarget->parent, updateTarget->left, updateTarget->right, m_header->size, removeTarget->index);
 				}
 			}
 
@@ -217,13 +217,18 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 		removeTarget = findNode;
 		if(removeTarget->index == m_header->rootNode)
 		{
-			PrintTree();
-			printf("Key : %d , FindNode : %llx\n", key, findNode);
-			printf("remove target.right : %d\n", removeTarget->right);
+			// PrintTree();
+			// printf("Key : %d , FindNode : %llx\n", key, findNode);
+			// printf("remove target.right : %d\n", removeTarget->right);
 			m_header->rootNode = removeTarget->right;
 			if(removeTarget->right != -1)
 			{
-				GetNode(removeTarget->right)->parent = -1;
+				RBTreeNode *newRoot = GetNode(removeTarget->right);
+				newRoot->parent = -1;
+				if(newRoot->color == RED)
+				{
+					newRoot->color = BLACK;
+				}
 			}
 			return removeTarget;
 		}
