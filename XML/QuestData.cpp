@@ -51,11 +51,12 @@ int QuestData::SetXmlData()
 		for(int j=0; j<res; j++)
 		{
 			if(!strcmp(valueList[j].name,"KEY"))						ConvertToInt(valueList[j].value, &QuestData.Key);
-			else if(!strcmp(valueList[j].name,"QuestActionCount"))		ConvertToInt(valueList[j].value, QuestData.uiQuestAction);
+			else if(!strcmp(valueList[j].name,"QuestActionCount"))		ConvertToInt(valueList[j].value, &QuestData.ucQuestActionCount);
 			else if(!strcmp(valueList[j].name,"QuestAction"))			ConvertToIntegerArray(valueList[j].value, QuestData.uiQuestAction);
 			else if(!strcmp(valueList[j].name,"PreQuest"))				ConvertToIntegerArray(valueList[j].value, QuestData.uiPrevQuest);
 			else if(!strcmp(valueList[j].name,"NextQuest"))				ConvertToIntegerArray(valueList[j].value, QuestData.uiNextQuest);
 			else if(!strcmp(valueList[j].name,"Reward"))				ConvertToInt(valueList[j].value, &QuestData.uiReward);
+			else if(!strcmp(valueList[j].name,"AppropriateLevel"))		ConvertToInt(valueList[j].value, &QuestData.usAppropriateLevel);	//제한 레벨
 			else if(!strcmp(valueList[j].name,"QuestName"));
 			else if(!strcmp(valueList[j].name,"QuestType"));
 			else 														printf("====== Variable name wrong : %s [%s]\n", valueList[j].name, valueList[j].value);

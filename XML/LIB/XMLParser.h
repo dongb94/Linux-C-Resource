@@ -5,7 +5,6 @@
 #define MAKE_SHM_KEY_FROM_INDEX(index) (((unsigned long long)index)<<48)+1
 #endif
 
-#define XML_READ_BUFFER_SIZE	65535
 #define XML_MAX_NUMBER_OF_VALUE	50
 
 #define MONSTER_BASE_DATA_XML_PATH "./MonsterData.xml"
@@ -15,17 +14,18 @@
 #define DROP_DATA_XML_PATH "./DropData.xml"
 #define DROP_SET_DATA_XML_PATH "./DropSetData.xml"
 #define REINFORCE_DATA_XML_PATH "./ReinforceData.xml"
-#define DESTROY_DATA_XML_PATH "./DestroyData.xml"
-#define MATERIAL_DATA_XML_PATH "./EquipMaterialData.xml"
+#define MATERIAL_DATA_XML_PATH "./MaterialData.xml"
 #define DISMANTLE_DATA_XML_PATH "./DismantleData.xml"
 #define RANDOM_OPTION_DATA_XML_PATH "./RandomOptionData.xml"
 #define COMBINE_JEWERLY_DATA_XML_PATH "./CombineJewerlyData.xml"
 #define BUFF_DATA_XML_PATH "./BuffData.xml"
 #define QUEST_DATA_XML_PATH "./QuestData.xml"
-#define QUEST_ACTION_DATA_XML_PATH "./QuestActionData.xml"
+#define QUEST_ACTION_DATA_XML_PATH "./QuestPlacementData_"
 #define REWARD_DATA_XML_PATH "./RewardData.xml"
 extern char FILE_PATH[512];
 extern short DIR_PATH_LEN;
+extern bool printLog;
+extern bool printHardLog;
 
 #include <fstream>
 #include <iostream>

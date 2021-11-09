@@ -273,7 +273,7 @@ int XMLReader::ConvertToIntegerArray(char* string, void* array, int elementSize,
 			}
 			break;
 		}
-		else if(c==',') {
+		else if(c==',' || c=='/') {
 			string[offset] = '\0';
 
 			if(elementSize < 5)

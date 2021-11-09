@@ -5,11 +5,11 @@ XMLParser::~XMLParser(){}
 
 int XMLParser::SetXmlPath(char* targetXml)
 {
+	memset(FILE_PATH + DIR_PATH_LEN, 0, sizeof(FILE_PATH) - DIR_PATH_LEN);
 	memcpy(FILE_PATH + DIR_PATH_LEN, targetXml, strlen(targetXml));
-	// printf("=== XML Path : %s\n", FILE_PATH);
+	printf("=== XML Path : %s\n", FILE_PATH);
 	return OpenXmlFile(FILE_PATH);
 }
-
 
 int XMLParser::PrintXML(Syntex syntex)
 {
@@ -32,21 +32,31 @@ int XMLParser::PrintXML(Syntex syntex)
 		{
 			printf("- %s\n", syntex.value);
 		}	break;
+		case REMARK:
+		{
+			printf("<!--%s-->\n", syntex.value);
+		}	break;
+		case HEADER:
+		{
+			printf("<?%s?>\n", syntex.value);
+		}	break;
 		default:
 			break;
 	}
-
 }
 
 inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 {
-	if(m_fileInputStream.is_open()){
+	if(m_fileInputStream.is_open())
+	{
 		return -1;
 	}
 
 	m_fileInputStream.open(filePath, ifstream::in); // read only
 
-	if(!m_fileInputStream.is_open()){
+	if(!m_fileInputStream.is_open())
+	{
+		printf(">>>>>>>>> OPEN XML FAIL : %s  <<<<\n", filePath);
 		return -2;
 	}
 
@@ -56,7 +66,11 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 	m_fileLength = m_fileInputStream.tellg();
 	m_fileInputStream.seekg(0, m_fileInputStream.beg);
 
-	printf("<<<<  Open XML File : %s [len : %d]  >>>>\n", filePath, m_fileLength);
+	// printf("<<<<  Open XML File : %s [len : %d]  >>>>\n", filePath, m_fileLength);
+
+	m_lexer.ResetBuffer();
+	ReadNext();
+	ReadNext();
 
 	return 0;
 }
@@ -64,7 +78,12 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 inline int XMLParser::ReadNext()
 {
 	// printf(">>> read count : %d / %d\n", m_readCount, m_fileLength);
-	if(m_readCount >= m_fileLength) return -1; // end of file
+	if(m_readCount >= m_fileLength) {
+		memset(buffer, 0, XML_READ_BUFFER_SIZE);
+		buffer[0] = EOF;
+		SetBuffer(buffer, XML_READ_BUFFER_SIZE);
+		return -1; // end of file
+	}
 
 	int readSize;
 	if(m_readCount + XML_READ_BUFFER_SIZE > m_fileLength) readSize = m_fileLength - m_readCount;
@@ -75,7 +94,7 @@ inline int XMLParser::ReadNext()
 		printf("Read Err ReadSize : %d\n", readSize);
 		return -2; // Read Err
 	}
-	m_readCount += XML_READ_BUFFER_SIZE;
+	m_readCount += readSize;
 
 	SetBuffer(buffer, XML_READ_BUFFER_SIZE);
 
@@ -84,7 +103,7 @@ inline int XMLParser::ReadNext()
 
 int XMLParser::GetNextValueGroup(Value** ppValueGroup)
 {
-	bool PrintXMLData = false; //// LOG PRINTS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	bool PrintXMLData = printLog; //// LOG PRINTS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 	if(m_fileInputStream)
 	{
@@ -122,13 +141,17 @@ int XMLParser::GetNextValueGroup(Value** ppValueGroup)
 					else if(m_syntexlevel == 0)
 					{
 						// printf("XML Read Complete\n");
+						m_fileInputStream.close();
 						return -1;
 					}
 				}	break;
 				case VALUE:
 				{
 					if(PrintXMLData) PrintXML(currentSyntex); ////
-					if(m_syntexlevel != 3) return -4;
+					if(m_syntexlevel == 0) continue;
+					if(m_syntexlevel != 3){
+						return -4;
+					} 
 					m_values[valueCount].value = currentSyntex.value;
 					// log
 					// printf("   └ %s \t: %s\n", m_values[valueCount].name, m_values[valueCount].value);
@@ -137,6 +160,7 @@ int XMLParser::GetNextValueGroup(Value** ppValueGroup)
 				}	break;
 				case REMARK:
 				case HEADER:
+					if(PrintXMLData) PrintXML(currentSyntex);
 					break;
 				default:
 				{
@@ -167,17 +191,16 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 
 	while(true){
 
-		// '<'가 아니면 읽는다.
-		if(nextToken.type != LQ)
-		{
-			res = GetNextToken(&nextToken);
-			if(res == -1) {
-				return -1;
-			}
-		}
-
 		if(syntex->type == SYNTEX_ERROR)	// 문맥 파악
 		{
+			if(nextToken.type != LQ)
+			{
+				res = GetNextToken(&nextToken);
+				if(res == -1) {
+					return -1;
+				}
+			}
+
 			preToken = nextToken;
 
 			if(nextToken.type == LQ)
@@ -227,6 +250,11 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 		{
 			// log
 			// printf("Syntex : %d\n", syntex->type);
+			res = GetNextToken(&nextToken);
+			if(res == -1) {
+				return -1;
+			}
+
 			switch (syntex->type)
 			{
 			case VALUE:
@@ -259,12 +287,27 @@ int XMLParser::GetNextSyntex(Syntex* syntex)
 				}
 				break;
 			case REMARK:
-			case HEADER: // 현재 해더처리 하지 않음
+			{
 				if(nextToken.type == RQ)
 				{
-					return syntex->type;
+					if(preToken.type == DD)
+					{
+						syntex->value = preToken.string;
+						return syntex->type;
+					}
 				}
-				break;
+			}	break;
+			case HEADER:
+			{
+				if(nextToken.type == RQ)
+				{
+					if(preToken.type == QM)
+					{
+						syntex->value = preToken.string;
+						return syntex->type;
+					}
+				}
+			}	break;
 			default:
 				break;
 			}
@@ -279,15 +322,23 @@ inline int XMLParser::GetNextToken(Token* pToken)
 {
 	int res;
 	res = m_lexer.GetNextToken(pToken);
-	if(res < 0) {
-		if(ReadNext()<0) return -1;
+	if(res == -READ_NEXT_SIGNAL)
+	{
+		ReadNext();
 		return GetNextToken(pToken);
 	}
+	if(res == EOF) {
+		return EOF;
+	}
 	// log
-	// if(res == WORD)
-	// 	printf(" Next Token = %d [%s]\n", res, pToken->string);
-	// else
-	// 	printf(" Next Token = %d\n", res);
+	if(printHardLog)
+	{
+		if(res == WORD)
+			printf(" Next Token = %d [%s]\n", res, pToken->string);
+		else
+			printf(" Next Token = %d\n", res);
+	}
+	
 	return res;
 }
 
@@ -305,39 +356,18 @@ int XMLParser::CombineWord(Token* left, Token* right)
 		break;
 	}
 
-	if(left->type == SLICE_WORD)
-	{
-		int length = left->length + right->length;
-		char* combine = new char[length +1];
+	int length = left->length + right->length;
+	char* combine = new char[length + 2];
 
-		memcpy(combine ,left->string, left->length);
-		memcpy((combine + left->length), right->string, right->length); // 마지막 '\0' 까지 복사
-		
-		// log
-		// printf("\tCombine SLICE [%s](%d)+[%s](%d) = [%s](%d)\n", left->string, left->length, right->string, right->length, combine, length);
+	memcpy(combine ,left->string, left->length);
+	combine[left->length] = ' ';
+	memcpy((combine + left->length + 1), right->string, right->length);
 
-		right->string = combine;
-		right->length = length;
-	}
-	else if(left->type == WORD)
-	{
-		int length = left->length + right->length;
-		char* combine = new char[length + 2];
+	// log
+	// printf("\tCombine [%s](%d)+[%s](%d) = [%s](%d)\n", left->string, left->length, right->string, right->length, combine, length + 1);
 
-		memcpy(combine ,left->string, left->length);
-		combine[left->length] = ' ';
-		memcpy((combine + left->length + 1), right->string, right->length);
-
-		// log
-		// printf("\tCombine [%s](%d)+[%s](%d) = [%s](%d)\n", left->string, left->length, right->string, right->length, combine, length + 1);
-
-		right->string = combine;
-		right->length = length + 1;
-	}
-	else
-	{
-		return -1;
-	}
+	right->string = combine;
+	right->length = length + 1;
 
 	return 0;
 }

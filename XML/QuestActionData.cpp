@@ -52,8 +52,8 @@ int QuestActionData::SetXmlData(int serial, int index)
 		for(int j=0; j<res; j++)
 		{
 			if(!strcmp(valueList[j].name,"KEY"))						ConvertToInt(valueList[j].value, &QuestActionData.Key);
-			else if(!strcmp(valueList[j].name,"Sequ	ence"))				ConvertToInt(valueList[j].value, &QuestActionData.usQuestSequence);
-			else if(!strcmp(valueList[j].name,"ActionType"))		ConvertToInt(valueList[j].value, &QuestActionData.usQuestActionType);
+			else if(!strcmp(valueList[j].name,"Sequence"))				ConvertToInt(valueList[j].value, &QuestActionData.usQuestSequence);
+			else if(!strcmp(valueList[j].name,"ActionType"))			ConvertToInt(valueList[j].value, &QuestActionData.usQuestActionType);
 			else if(!strcmp(valueList[j].name,"TargetIndexList"))		ConvertToIntegerArray(valueList[j].value, QuestActionData.ullTargetList);
 			else if(!strcmp(valueList[j].name,"GoalCount"))				ConvertToInt(valueList[j].value, &QuestActionData.uiGoalCount);
 			else if(!strcmp(valueList[j].name,"QuestSubTitle"));
