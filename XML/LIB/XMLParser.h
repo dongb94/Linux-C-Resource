@@ -18,10 +18,14 @@
 #define DISMANTLE_DATA_XML_PATH "./DismantleData.xml"
 #define RANDOM_OPTION_DATA_XML_PATH "./RandomOptionData.xml"
 #define COMBINE_JEWERLY_DATA_XML_PATH "./CombineJewerlyData.xml"
+#define COMBINE_SYNERGY_ITEM_DATA_XML_PATH "./CombineSynergyItemData.xml"
 #define BUFF_DATA_XML_PATH "./BuffData.xml"
 #define QUEST_DATA_XML_PATH "./QuestData.xml"
 #define QUEST_ACTION_DATA_XML_PATH "./QuestPlacementData_"
 #define REWARD_DATA_XML_PATH "./RewardData.xml"
+#define SKILL_BOOK_DATA_XML_PATH "./SkillBookData.xml"
+#define RANDOM_PICK_UP_DATA_XML_PATH "./RandomPickUpData.xml"
+#define RANDOM_PICK_UP_LIST_DATA_XML_PATH "./RandomPickUpListData.xml"
 extern char FILE_PATH[512];
 extern short DIR_PATH_LEN;
 extern bool printLog;

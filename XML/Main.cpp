@@ -9,10 +9,14 @@
 #include "DismantleData.h"
 #include "RandomOptionData.h"
 #include "CombineJewerlyData.h"
+#include "CombineSynergyItemData.h"
 #include "MaterialData.h"
 #include "QuestData.h"
 #include "BuffData.h"
 #include "RewardData.h"
+#include "SkillBookData.h"
+#include "RandomPickUpData.h"
+#include "RandomPickUpListData.h"
 
 char FILE_PATH[512];
 short DIR_PATH_LEN;
@@ -62,22 +66,30 @@ int main(int argc, char** argv)
 	DismantleData dismantleData;
 	RandomOptionData randomOptionData;
 	CombineJewerlyData combineJewerlyData;
+	CombineSynergyItemData combineSynergyItemData;
 	MaterialData materialData;
 	QuestData questData;
 	BuffData buffData;
 	RewardData rewardData;
+	SkillBookData skillBookData;
+	RandomPickUpData randomPickUpData;
+	RandomPickUpListData randomPickUpListData;
 
 	mapData.SetXmlData();
 	dropData.SetXmlData();
 	dropSetData.SetXmlData();
 	dismantleData.SetXmlData();
 	combineJewerlyData.SetXmlData();
+	combineSynergyItemData.SetXmlData();
 	materialData.SetXmlData();
 	questData.SetXmlData();
 	buffData.SetXmlData();
 	reinforceSetData.SetXmlData();
 	rewardData.SetXmlData();
 	randomOptionData.SetXmlData();
+	skillBookData.SetXmlData();
+	randomPickUpData.SetXmlData();
+	randomPickUpListData.SetXmlData();
 
 	return 0;
 }

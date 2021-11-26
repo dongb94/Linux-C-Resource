@@ -18,9 +18,10 @@ OPTIMIZE    = -g -Wall
 CFLAGS		= $(OPTIMIZE) $(INCLUDES) $(DEBUG) -g
 
 SRCS		= MapData.cpp MonsterData.cpp MonsterPlacementData.cpp Main.cpp \
-				DropData.cpp DropSetData.cpp DestroyData.cpp DismantleData.cpp \
+				DropData.cpp DropSetData.cpp DismantleData.cpp \
 				ReinforceData.cpp MaterialData.cpp QuestData.cpp RandomOptionData.cpp \
-				CombineJewerlyData.cpp BuffData.cpp
+				CombineJewerlyData.cpp BuffData.cpp QuestActionData.cpp RewardData.cpp \
+				SkillBookData.cpp CombineSynergyItemData.cpp RandomPickUpData.cpp RandomPickUpListData.cpp \
 
 TARGET		= XML_DATA_SET
 

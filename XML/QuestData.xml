@@ -1,63 +1,433 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Table>
-	<!-- test-->
-	<!-- <Record>
-		<KEY>1000</KEY>
-		<QuestType>Main</QuestType>
-		<Quests>101000 / 101001 / 101002</Quests>
-	</Record>-->
-
-	<!-- 팝툴 읽기 테스트 -->
-	<!-- QuestPlacementData_<QuestAction> -->
-	<!-- QuestPlacementData_10000 -->
-	<Record>
-		<KEY>10000</KEY>
-		<QuestType>Main</QuestType>
-		<QuestName>팝툴 테스트</QuestName>
-		<QuestActionCount>2</QuestActionCount>
-		<QuestAction>1000001 / 1000002</QuestAction>
-		<PreQuest></PreQuest>
-		<NextQuest>10001</NextQuest>
-		<Reward>2</Reward>
-	</Record>
-	<Record>
-		<KEY>10001</KEY>
-		<QuestType>Main</QuestType>
-		<QuestName>팝툴 테스트2</QuestName>
-		<QuestActionCount>3</QuestActionCount>
-		<QuestAction>1000101 / 1000102 / 1000103</QuestAction>
-		<PreQuest>10000</PreQuest>
-		<NextQuest>10002</NextQuest>
-		<Reward>2</Reward>
-	</Record>
-	<Record>
-		<KEY>10002</KEY>
-		<QuestType>Main</QuestType>
-		<QuestName>팝툴 테스트3</QuestName>
-		<QuestActionCount>2</QuestActionCount>
-		<QuestAction>1000201 / 1000202</QuestAction>
-		<PreQuest>10001</PreQuest>
-		<NextQuest>10003</NextQuest>
-		<Reward>2</Reward>
-	</Record>
-	<Record>
-		<KEY>10003</KEY>
-		<QuestType>Main</QuestType>
-		<QuestName>팝툴 테스트4</QuestName>
-		<QuestActionCount>1</QuestActionCount>
-		<QuestAction>1000301</QuestAction>
-		<PreQuest>10002</PreQuest>
-		<NextQuest>10004</NextQuest>
-		<Reward>2</Reward>
-	</Record>
-	<Record>
-		<KEY>10004</KEY>
-		<QuestType>Main</QuestType>
-		<QuestName>팝툴 테스트5</QuestName>
-		<QuestActionCount>2</QuestActionCount>
-		<QuestAction>1000401 / 1000402</QuestAction>
-		<PreQuest>10003</PreQuest>
-		<NextQuest>10005</NextQuest>
-		<Reward>2</Reward>
-	</Record>
+    <Record>
+        <KEY>10000</KEY>
+        <QuestType>Main</QuestType>
+        <QuestName>메인 퀘스트0-1</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1000001 / 1000002</QuestAction>
+        <PreQuest></PreQuest>
+        <NextQuest>10001</NextQuest>
+        <Reward>10000</Reward>
+    </Record>
+    <Record>
+        <KEY>10001</KEY>
+        <QuestType>Main</QuestType>
+        <QuestName>메인 퀘스트0-2</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1000101 / 1000102</QuestAction>
+        <PreQuest>10000</PreQuest>
+        <NextQuest>10002</NextQuest>
+        <Reward>10001</Reward>
+    </Record>
+    <Record>
+        <KEY>10002</KEY>
+        <QuestType>Main</QuestType>
+        <QuestName>메인 퀘스트0-3</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1000201 / 1000202</QuestAction>
+        <PreQuest>10001</PreQuest>
+        <NextQuest>10003</NextQuest>
+        <Reward>10002</Reward>
+    </Record>
+    <Record>
+        <KEY>10003</KEY>
+        <QuestType>Main</QuestType>
+        <QuestName>메인 퀘스트0-4</QuestName>
+        <QuestActionCount>1</QuestActionCount>
+        <QuestAction>1000301</QuestAction>
+        <PreQuest>10002</PreQuest>
+        <NextQuest>10004</NextQuest>
+        <Reward>10003</Reward>
+    </Record>
+    <Record>
+        <KEY>10004</KEY>
+        <QuestType>Main</QuestType>
+        <QuestName>메인 퀘스트0-5</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1000401 / 1000402</QuestAction>
+        <PreQuest>10003</PreQuest>
+        <NextQuest>11000</NextQuest>
+        <Reward>10004</Reward>
+    </Record>
+    <Record>
+        <KEY>11000</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-1</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100001 / 1100002</QuestAction>
+        <PreQuest>10004</PreQuest>
+        <NextQuest>11001</NextQuest>
+        <Reward>11000</Reward>
+    </Record>
+    <Record>
+        <KEY>11001</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-2</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100101 / 1100102</QuestAction>
+        <PreQuest>11000</PreQuest>
+        <NextQuest>11002</NextQuest>
+        <Reward>11001</Reward>
+    </Record>
+    <Record>
+        <KEY>11002</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-3</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100201 / 1100202</QuestAction>
+        <PreQuest>11001</PreQuest>
+        <NextQuest>11003</NextQuest>
+        <Reward>11002</Reward>
+    </Record>
+    <Record>
+        <KEY>11003</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-4</QuestName>
+        <QuestActionCount>3</QuestActionCount>
+        <QuestAction>1100301 / 1100302 / 1100303</QuestAction>
+        <PreQuest>11002</PreQuest>
+        <NextQuest>11004</NextQuest>
+        <Reward>11003</Reward>
+    </Record>
+    <Record>
+        <KEY>11004</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-5</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100401 / 1100402</QuestAction>
+        <PreQuest>11003</PreQuest>
+        <NextQuest>11005</NextQuest>
+        <Reward>11004</Reward>
+    </Record>
+    <Record>
+        <KEY>11005</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-6</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100501 / 1100502</QuestAction>
+        <PreQuest>11004</PreQuest>
+        <NextQuest>11006</NextQuest>
+        <Reward>11005</Reward>
+    </Record>
+    <Record>
+        <KEY>11006</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-7</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100601 / 1100602</QuestAction>
+        <PreQuest>11005</PreQuest>
+        <NextQuest>11007</NextQuest>
+        <Reward>11006</Reward>
+    </Record>
+    <Record>
+        <KEY>11007</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-8</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100701 / 1100702</QuestAction>
+        <PreQuest>11006</PreQuest>
+        <NextQuest>11008</NextQuest>
+        <Reward>11007</Reward>
+    </Record>
+    <Record>
+        <KEY>11008</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-9</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100801 / 1100802</QuestAction>
+        <PreQuest>11007</PreQuest>
+        <NextQuest>11009</NextQuest>
+        <Reward>11008</Reward>
+    </Record>
+    <Record>
+        <KEY>11009</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-10</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1100901 / 1100902</QuestAction>
+        <PreQuest>11008</PreQuest>
+        <NextQuest>11010</NextQuest>
+        <Reward>11009</Reward>
+    </Record>
+    <Record>
+        <KEY>11010</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-11</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1101001 / 1101002</QuestAction>
+        <PreQuest>11009</PreQuest>
+        <NextQuest>11011</NextQuest>
+        <Reward>11010</Reward>
+    </Record>
+    <Record>
+        <KEY>11011</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-12</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1101101 / 1101102</QuestAction>
+        <PreQuest>11010</PreQuest>
+        <NextQuest>11012</NextQuest>
+        <Reward>11011</Reward>
+    </Record>
+    <Record>
+        <KEY>11012</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-13</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1101201 / 1101202</QuestAction>
+        <PreQuest>11011</PreQuest>
+        <NextQuest>11013</NextQuest>
+        <Reward>11012</Reward>
+    </Record>
+    <Record>
+        <KEY>11013</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-14</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1101301 / 1101302</QuestAction>
+        <PreQuest>11012</PreQuest>
+        <NextQuest>11014</NextQuest>
+        <Reward>11013</Reward>
+    </Record>
+    <Record>
+        <KEY>11014</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-15</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1101401 / 1101402</QuestAction>
+        <PreQuest>11013</PreQuest>
+        <NextQuest>11015</NextQuest>
+        <Reward>11014</Reward>
+    </Record>
+    <Record>
+        <KEY>11015</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-16</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1101501 / 1101502</QuestAction>
+        <PreQuest>11014</PreQuest>
+        <NextQuest>11016</NextQuest>
+        <Reward>11015</Reward>
+    </Record>
+    <Record>
+        <KEY>11016</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트1-17</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1101601 / 1101602</QuestAction>
+        <PreQuest>11015</PreQuest>
+        <NextQuest>12001</NextQuest>
+        <Reward>11016</Reward>
+    </Record>
+    <Record>
+        <KEY>12001</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-1</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200101 / 1200102</QuestAction>
+        <PreQuest>11016</PreQuest>
+        <NextQuest>12002</NextQuest>
+        <Reward>12001</Reward>
+    </Record>
+    <Record>
+        <KEY>12002</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-2</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200201 / 1200202</QuestAction>
+        <PreQuest>12001</PreQuest>
+        <NextQuest>12003</NextQuest>
+        <Reward>12002</Reward>
+    </Record>
+    <Record>
+        <KEY>12003</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-3</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200301 / 1200302</QuestAction>
+        <PreQuest>12002</PreQuest>
+        <NextQuest>12004</NextQuest>
+        <Reward>12003</Reward>
+    </Record>
+    <Record>
+        <KEY>12004</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-4</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200401 / 1200402</QuestAction>
+        <PreQuest>12003</PreQuest>
+        <NextQuest>12005</NextQuest>
+        <Reward>12004</Reward>
+    </Record>
+    <Record>
+        <KEY>12005</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-5</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200501 / 1200502</QuestAction>
+        <PreQuest>12004</PreQuest>
+        <NextQuest>12006</NextQuest>
+        <Reward>12005</Reward>
+    </Record>
+    <Record>
+        <KEY>12006</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-6</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200601 / 1200602</QuestAction>
+        <PreQuest>12005</PreQuest>
+        <NextQuest>12007</NextQuest>
+        <Reward>12006</Reward>
+    </Record>
+    <Record>
+        <KEY>12007</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-7</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200701 / 1200702</QuestAction>
+        <PreQuest>12006</PreQuest>
+        <NextQuest>12008</NextQuest>
+        <Reward>12007</Reward>
+    </Record>
+    <Record>
+        <KEY>12008</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-8</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200801 / 1200802</QuestAction>
+        <PreQuest>12007</PreQuest>
+        <NextQuest>12009</NextQuest>
+        <Reward>12008</Reward>
+    </Record>
+    <Record>
+        <KEY>12009</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-9</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1200901 / 1200902</QuestAction>
+        <PreQuest>12008</PreQuest>
+        <NextQuest>12010</NextQuest>
+        <Reward>12009</Reward>
+    </Record>
+    <Record>
+        <KEY>12010</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-10</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1201001 / 1201002</QuestAction>
+        <PreQuest>12009</PreQuest>
+        <NextQuest>12011</NextQuest>
+        <Reward>12010</Reward>
+    </Record>
+    <Record>
+        <KEY>12011</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트2-11</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1201101 / 1201102</QuestAction>
+        <PreQuest>12010</PreQuest>
+        <NextQuest>13000</NextQuest>
+        <Reward>12011</Reward>
+    </Record>
+    <Record>
+        <KEY>13000</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-1</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300001 / 1300002</QuestAction>
+        <PreQuest>12011</PreQuest>
+        <NextQuest>13001</NextQuest>
+        <Reward>13000</Reward>
+    </Record>
+    <Record>
+        <KEY>13001</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-2</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300101 / 1300102</QuestAction>
+        <PreQuest>13000</PreQuest>
+        <NextQuest>13002</NextQuest>
+        <Reward>13001</Reward>
+    </Record>
+    <Record>
+        <KEY>13002</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-3</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300201 / 1300202</QuestAction>
+        <PreQuest>13001</PreQuest>
+        <NextQuest>13003</NextQuest>
+        <Reward>13002</Reward>
+    </Record>
+    <Record>
+        <KEY>13003</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-4</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300301 / 1300302</QuestAction>
+        <PreQuest>13002</PreQuest>
+        <NextQuest>13004</NextQuest>
+        <Reward>13003</Reward>
+    </Record>
+    <Record>
+        <KEY>13004</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-5</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300401 / 1300402</QuestAction>
+        <PreQuest>13003</PreQuest>
+        <NextQuest>13005</NextQuest>
+        <Reward>13004</Reward>
+    </Record>
+    <Record>
+        <KEY>13005</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-6</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300501 / 1300502</QuestAction>
+        <PreQuest>13004</PreQuest>
+        <NextQuest>13006</NextQuest>
+        <Reward>13005</Reward>
+    </Record>
+    <Record>
+        <KEY>13006</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-7</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300601 / 1300602</QuestAction>
+        <PreQuest>13005</PreQuest>
+        <NextQuest>13007</NextQuest>
+        <Reward>13006</Reward>
+    </Record>
+    <Record>
+        <KEY>13007</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-8</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300701 / 1300702</QuestAction>
+        <PreQuest>13006</PreQuest>
+        <NextQuest>13008</NextQuest>
+        <Reward>13007</Reward>
+    </Record>
+    <Record>
+        <KEY>13008</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-9</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300801 / 1300802</QuestAction>
+        <PreQuest>13007</PreQuest>
+        <NextQuest>13009</NextQuest>
+        <Reward>13008</Reward>
+    </Record>
+    <Record>
+        <KEY>13009</KEY>
+        <Stage>Main</Stage>
+        <QuestName>메인 퀘스트3-10</QuestName>
+        <QuestActionCount>2</QuestActionCount>
+        <QuestAction>1300901 / 1300902</QuestAction>
+        <PreQuest>13008</PreQuest>
+        <NextQuest></NextQuest>
+        <Reward>13009</Reward>
+    </Record>
 </Table>

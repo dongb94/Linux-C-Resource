@@ -10,7 +10,7 @@ MapData::MapData()
 	if(res <0)
 	{
 		//errr
-		printf("InitSharedMemory Fail %d\n", res);
+		printf("[MapData] InitSharedMemory Fail %d\n", res);
 	}
 }
 MapData::~MapData(){}
@@ -34,6 +34,11 @@ int MapData::SetXmlData()
 		res = m_parser.GetNextValueGroup(&valueList);
 		if(res < 0)
 		{
+			if(res == EOF)
+			{
+				printf(">>>> COMPLETE READ XML\n");
+				return 0;
+			}
 			printf("====== GetNextValueFalse %d\n", res);
 			return -1;
 		}
@@ -51,8 +56,7 @@ int MapData::SetXmlData()
 			else 														printf("====== Variable name wrong : %s [%s]\n", valueList[j].name, valueList[j].value);
 		}
 
-		printf(" •••• MapData set [%d]%d\n", i, mapData.Key);
-		//Build_hashed_shm_key(&m_smXMLData, mapData.Key);
+		// printf(" •••• MapData set [%d]%d\n", i, mapData.Key);
 
 		UINT64 ullMonsterKey = MAKE_SHM_KEY_FROM_INDEX(i);
 		MAP_XML_DATA* mapXMLData;

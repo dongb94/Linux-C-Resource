@@ -1,9 +1,0 @@
-<root>
-	<Record>
-		<KEY>1</KEY> <!-- == Quest Action Key -->
-		<Sequence>1</Sequence>
-		<QuestActionType>1</QuestActionType>
-		<QuestActionTarget>1,2,3</QuestActionTarget>
-		<GoalCount>3</GoalCount>
-	</Record>
-</root>
