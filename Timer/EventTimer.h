@@ -25,7 +25,12 @@
 #define TIMER_WHEEL_EVENT_SIZE_MINUTE 10000
 #define TIMER_WHEEL_EVENT_SIZE_SECOND 10000
 
+#define MILLISECOND_PER_DAY		86400000
+#define MILLISECOND_PER_WEEK	604800000
+
 #define	GET_TIMER_KEY(slot)	(((uint64)slot << 48)+1)
+
+#define CHECK_LEAP_YEAR(year) (((year+1900)%4==0 && (year+1900)%100!=0) || (year+1900)%400==0)
 
 typedef int (*TimerFunc)();
 
@@ -46,15 +51,25 @@ struct EventStruct
 struct TimerRemoteControler
 {
 	int (*addTimeOut) (uint64 func, uint64 millisecond, uint64 eventVar, bool repeat, int repeatCount, uint64 tid, bool overriding);
+	int (*addTimeOutDelay) (uint64 func, uint64 startTime, uint64 eventVar, bool repeat, int repeatCount, int repeatDelay, uint64 tid, bool overriding);
 
 	int (*tick) (void);
 	int (*stop) (void);
 	int (*remove) (uint64 tid);
 
-	int (*getCurrentTime) (void);
+	UINT64 (*getCurrentTime) (void);
+
+	tm* (*getCurrentTimeTM) (void);
+	UINT64 (*getMillisecondFromCurrentTime) (tm *time);
+	UINT64 (*getMillisecondFromCurrentTime2) (time_t *time);
+	UINT64 (*getDayAfterValue) (unsigned char value);
+	time_t (*getDayAfterShopItemResetType) (unsigned char ResetType);
+	int (*getLastDayofMonth) (int Year, int Month);
 };
 
 static bool m_start = false;
+
+static int days[12] = {31, 28, 31, 30, 31, 30, 31, 31 ,30 ,31 ,30 ,31};
 
 // 50ms 단위로 돌아가는 타이머 휠. keep alive 패킷, 핑퐁, 연결 지연등 타임아웃 이벤트.
 // 또는 서버에서 반복적으로 호출 되어야 하는 이벤트들을 관리 할 것임.
@@ -67,6 +82,7 @@ public :
 	int InitSharedMemory();
 
 	static int AddTimeOut(uint64 functionId, uint64 millisecond, uint64 eventVar, bool repeat = false, int repeatCount = -1, uint64 tid = 0, bool overriding = false);
+	static int AddTimeOut(uint64 functionId, uint64 startTime, uint64 eventVar, bool repeat, int repeatCount, uint64 repeatDelay, uint64 tid, bool overriding = false);
 
 	static int RemoveEvent(uint64 tid);
 
@@ -74,7 +90,15 @@ public :
 
 	static int GetEvent(uint64 eventKey, EventStruct **event);
 
-	static int GetCurrentTime();
+	static UINT64 GetCurrentTimeUINT64();
+	static tm* GetCurrentTimeTM();
+	static UINT64 GetDayAfterValue(UCHAR value);
+	static time_t GetDayAfterShopItemResetType(UCHAR ResetType);
+	static int GetLastDayofMonth(int Year, int Month);
+
+
+	static UINT64 GetMillisecondFromCurrentTime(tm *time);
+	static UINT64 GetMillisecondFromCurrentTime(time_t *time);
 
 private :
 

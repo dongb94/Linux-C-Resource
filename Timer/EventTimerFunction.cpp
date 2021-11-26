@@ -21,7 +21,8 @@ int TestEvent3()
 
 int DisconnectLogout(UINT64 UserSmKey) 
 {
-	userCoreSTI->CloseUser(UserSmKey, 0, 0, ERROR_NO_REPLY);
+	printf("LOGOUT USER [%llx]\n", UserSmKey);
+	userCoreSTI->LogoutUser(UserSmKey, 0, 0, ERROR_NO_REPLY);
 	return 0;
 }
 
@@ -44,9 +45,15 @@ int ExpDoubleBuffEnd(UINT64 CharSmKey)
 			if(pCharInfo->buffInfo[i].uiBuffId == EventType_ExpDouble)
 			{
 				memset(&(pCharInfo->buffInfo[i]), 0, sizeof(X_BUFF_INFO));
-				pCharInfo->additionalStatusInfo.usAdditionalExperienceRate = 0;
+				pCharInfo->additionalStatusInfo.usExpMultiplier = 0;
 			}
 		}
 	}
 	userCoreSTI->PlayerStateChange(CharSmKey, EventType_ExpDouble, 0);
+}
+
+int UpdateSellItemDB(USHORT usShopResetType)
+{
+	dAppLog(LOG_DEBUG, "UPDATE SELL ITEM DB [ShopResetType : %d]", usShopResetType);
+	userCoreSTI->ResetShopPurchaseInfo(usShopResetType);
 }
