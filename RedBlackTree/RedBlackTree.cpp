@@ -87,11 +87,11 @@ RBTreeNode* RedBlackTree::insert(unsigned long long key, unsigned long long valu
 {
 	//TODO Add key duplicate action
 
-	if(key == 0) 
-	{
-		printf("insert 0 key to red black tree\n");
-		return NULL;
-	}
+	// if(key == 0) 
+	// {
+	// 	printf("insert 0 key to red black tree\n");
+	// 	return NULL;
+	// }
 
 	if(m_header->maxSize <= m_header->size) return NULL;
 
@@ -125,8 +125,10 @@ void RedBlackTree::insert(RBTreeNode *insertNode, RBTreeNode *parentNode)
 	int *index;
 	if((unsigned long long) insertNode->value.Key < (unsigned long long) parentNode->value.Key)
 		index = &(parentNode->left);
-	else
+	else if((unsigned long long) insertNode->value.Key > (unsigned long long) parentNode->value.Key)
 		index = &(parentNode->right);
+	else
+		return;
 
 	if(*index == -1)
 	{

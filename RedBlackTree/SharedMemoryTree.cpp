@@ -41,7 +41,7 @@ int CSharedMemoryTree::CreateArray(key_t KeyValue, unsigned int ArrayNum, unsign
 	int nRet = Init_hashed_shm(&m_hsm_Memory);
 	if (nRet < 0)
 	{
-		dAppLog(LOG_CRI, "[CreateTree] [%x] Init_hashed_shm: %s", KeyValue, Msg_hashed_shm(nRet));
+		dAppLog(LOG_CRI, "[CreateTree] [%lld] Init_hashed_shm: %s", KeyValue, Msg_hashed_shm(nRet));
 		return -1;
 	}
 
