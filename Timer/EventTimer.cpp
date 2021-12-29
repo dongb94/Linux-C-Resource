@@ -32,11 +32,8 @@ EventTimerWheel::EventTimerWheel()
 
 	if(!m_start)
 	{
-		m_start = true;
-
 		std::thread t([=]() 
 		{
-
 			struct timeb m_time;
 			ftime(&m_time);
 			struct tm *tm_ptr;
@@ -48,6 +45,8 @@ EventTimerWheel::EventTimerWheel()
 			secondCurrent += m_time.millitm * TIMER_WHEEL_TICK_PER_SECOND / 1000;
 
 			int lastTick = m_time.millitm;
+
+			m_start = true;
 
 			int clockTime;
 			while(true)
@@ -74,6 +73,10 @@ EventTimerWheel::EventTimerWheel()
 		});
 		// thread::setScheduling(t, SCHED_FIFO, 10);
 		t.detach();
+	}
+	while (!m_start)
+	{
+		usleep(1);
 	}
 }
 
@@ -227,7 +230,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 	{
 		if(overriding) 
 		{
-			// RemoveEvent(newEvent->tid);
+			RemoveEvent(newEvent->tid);
 			break;
 		}
 		tid = (tid + 1) % TIMER_WHEEL_EVENT_SIZE;
@@ -322,9 +325,9 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 	}
 
 	// printf("Add New Event [tid : %d]\n", newEvent->tid);
-	dAppLog(LOG_DEBUG, "Add New Event [pre %lld][next %lld][tid %lld][startTime %lld][function %lld][var1 %lld][repeat %d][repeat count %d][repeat delay %lld][%d:%d][leftCount : %d]", 
+	dAppLog(LOG_DEBUG, "Add New Event [pre %lld][next %lld][tid %lld][startTime %lld][function %lld][var1 %lld][repeat %d][repeat count %d][repeat delay %lld][%d:%d][leftCount : %d][leftMillisecond : %d]", 
 						newEvent->preEventKey, newEvent->nextEventKey, newEvent->tid, startTime, newEvent->functionId, eventVar, newEvent->repeat, newEvent->repeatCount, newEvent->millisecond,
-						hour, minute, newEvent->leftCount);
+						hour, minute, newEvent->leftCount, newEvent->leftMilliSecond);
 
 	return newEvent->tid;
 }
@@ -459,9 +462,11 @@ int EventTimerWheel::Tick()
 	while(HeadKeyPointer != 0)
 	{
 		GetEvent(HeadKeyPointer, &st_event);
+		HeadKeyPointer = st_event->nextEventKey; // 내리면 안됨.
 		// dAppLog(LOG_DEBUG, "Event Tick MINITE[TID %lld][leftCount %d]", st_event->tid, st_event->leftCount);
 		if(st_event->leftCount <=0)
 		{
+			
 			// 원소 제거
 			if(st_event->preEventKey != 0)
 			{
@@ -486,8 +491,6 @@ int EventTimerWheel::Tick()
 		{
 			st_event->leftCount--;
 		}
-
-		HeadKeyPointer = st_event->nextEventKey;
 	}
 
 	*minutePointer = (*minutePointer + 1) & 0b111;
@@ -499,6 +502,7 @@ int EventTimerWheel::Tick()
 	while(HeadKeyPointer != 0)
 	{
 		GetEvent(HeadKeyPointer, &st_event);
+		HeadKeyPointer = st_event->nextEventKey;
 		// dAppLog(LOG_DEBUG, "Event Tick HOUR[TID %lld][leftCount %d]", st_event->tid, st_event->leftCount);
 		if(st_event->leftCount <=0)
 		{
@@ -527,7 +531,6 @@ int EventTimerWheel::Tick()
 			st_event->leftCount--;
 		}
 
-		HeadKeyPointer = st_event->nextEventKey;
 	}
 
 	*hourPointer = (*hourPointer + 1) & 0b111;
@@ -537,7 +540,7 @@ int EventTimerWheel::Tick()
 
 int EventTimerWheel::RunEvent(uint64 functionId, uint64 eventVar)
 {
-	dAppLog(LOG_DEBUG, "[RunEvent] Event Run [functionId : %d][EventVar : %d]", functionId, eventVar);
+	dAppLog(LOG_DEBUG, "[RunEvent] Event Run [functionId : %lld][EventVar : %lld]", functionId, eventVar);
 
 	switch (functionId)
 	{
@@ -634,9 +637,8 @@ UINT64 EventTimerWheel::GetMillisecondFromCurrentTime(tm *time)
 	struct tm *tm;
 	tm = localtime(&m_time.time);
 
-	UINT64 day = (time->tm_year * 365 + time->tm_yday) - (tm->tm_year * 365 + tm->tm_yday) + ((time->tm_year-1)/4 - (time->tm_year-1)/100 + (time->tm_year-1)/400) - ((tm->tm_year-1)/4 - (tm->tm_year-1)/100 + (tm->tm_year-1)/400);
-	UINT64 second = (time->tm_hour * 3600 + time->tm_min * 60 + time->tm_sec) - (tm->tm_hour * 3600 + tm->tm_min * 60 + tm->tm_sec);
-	dAppLog(LOG_DEBUG, "[GetMillisecondFromCurrentTime] [Day : %d][Second : %d]", day, second);
+	int day = (time->tm_year * 365 + time->tm_yday) - (tm->tm_year * 365 + tm->tm_yday) + ((time->tm_year-1)/4 - (time->tm_year-1)/100 + (time->tm_year-1)/400) - ((tm->tm_year-1)/4 - (tm->tm_year-1)/100 + (tm->tm_year-1)/400);
+	int second = (time->tm_hour * 3600 + time->tm_min * 60 + time->tm_sec) - (tm->tm_hour * 3600 + tm->tm_min * 60 + tm->tm_sec);
 	UINT64 millisecond = day * 86400000 + second * 1000 - m_time.millitm;
 
 	return millisecond;
@@ -719,8 +721,9 @@ time_t EventTimerWheel::GetDayAfterShopItemResetType(UCHAR ResetType)
 	switch (ResetType)
 	{
 	case SellItemDaily:
+	{
 		tm->tm_mday++;
-		break;
+	}	break;
 
 	case SellItemWeekly:
 	{
@@ -728,12 +731,26 @@ time_t EventTimerWheel::GetDayAfterShopItemResetType(UCHAR ResetType)
 		int wday = 1 - tm->tm_wday;
 		tm->tm_mday += wday;
 	}	break;
+
+	case SellItemMonthly:
+	{
+		tm->tm_mday = 1;
+		tm->tm_mon++;
+
+		if(tm->tm_mon == 12)
+		{
+			tm->tm_mon = 0;
+			tm->tm_year++;
+		}
+
+		return mktime(tm);
+	}	break;
 	
 	default:
 		break;
 	}
 	
-	if(tm->tm_mday > days[tm->tm_mon] || ResetType == SellItemMonthly)
+	if(tm->tm_mday > days[tm->tm_mon])
 	{
 		int overDay = days[tm->tm_mon] - tm->tm_mday;
 		tm->tm_mday = overDay * -1;

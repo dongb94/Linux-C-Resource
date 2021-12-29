@@ -21,7 +21,7 @@ int TestEvent3()
 
 int DisconnectLogout(UINT64 UserSmKey) 
 {
-	printf("LOGOUT USER [%llx]\n", UserSmKey);
+	// printf("LOGOUT USER [%llx]\n", UserSmKey);
 	userCoreSTI->LogoutUser(UserSmKey, 0, 0, ERROR_NO_REPLY);
 	return 0;
 }
@@ -45,7 +45,7 @@ int ExpDoubleBuffEnd(UINT64 CharSmKey)
 			if(pCharInfo->buffInfo[i].uiBuffId == EventType_ExpDouble)
 			{
 				memset(&(pCharInfo->buffInfo[i]), 0, sizeof(X_BUFF_INFO));
-				pCharInfo->additionalStatusInfo.usExpMultiplier = 0;
+				pCharInfo->additionalStatusInfo[EXP_Multiplier] = 0;
 			}
 		}
 	}

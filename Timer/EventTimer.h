@@ -51,7 +51,7 @@ struct EventStruct
 struct TimerRemoteControler
 {
 	int (*addTimeOut) (uint64 func, uint64 millisecond, uint64 eventVar, bool repeat, int repeatCount, uint64 tid, bool overriding);
-	int (*addTimeOutDelay) (uint64 func, uint64 startTime, uint64 eventVar, bool repeat, int repeatCount, int repeatDelay, uint64 tid, bool overriding);
+	int (*addTimeOutDelay) (uint64 func, uint64 startTime, uint64 eventVar, bool repeat, int repeatCount, uint64 repeatDelay, uint64 tid, bool overriding);
 
 	int (*tick) (void);
 	int (*stop) (void);
