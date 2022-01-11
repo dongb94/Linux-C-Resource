@@ -75,7 +75,9 @@ int	RedBlackTree::init(key_t key, int maxSize)
 
 int	RedBlackTree::reset()
 {
+#ifdef TREE_LOG
 	printf("Reset tree [%llx]\n", m_header);
+#endif
 
 	m_header->rootNode = -1;
 	m_header->size = 0;
@@ -93,9 +95,16 @@ RBTreeNode* RedBlackTree::insert(unsigned long long key, unsigned long long valu
 	// 	return NULL;
 	// }
 
+	RBTreeNode *newNode = find(key);
+	if(newNode != NULL)
+	{
+		newNode->value.Value = value;
+		return newNode;
+	}
+
 	if(m_header->maxSize <= m_header->size) return NULL;
 
-	RBTreeNode *newNode = (RBTreeNode *)(memStart + m_header->size * sizeof(RBTreeNode));
+	newNode = (RBTreeNode *)(memStart + m_header->size * sizeof(RBTreeNode));
 	// printf("HEADER %llx -STARTMEM %llx -NEWMEM %llx\n",m_header, memStart, newNode);
 	newNode->color = RED; // RED
 	newNode->value.Key = key;
@@ -147,7 +156,6 @@ void RedBlackTree::insert(RBTreeNode *insertNode, RBTreeNode *parentNode)
 void RedBlackTree::Remove(unsigned long long key)
 {
 	RBTreeNode *removeTarget = RemoveNode(key);
-
 	if(removeTarget != NULL)
 	{
 		// delete removeTarget;
@@ -209,6 +217,7 @@ void RedBlackTree::Remove(unsigned long long key)
 
 RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 {
+	// PrintTree();
 	RBTreeNode *findNode = find(key);
 	if(findNode == NULL) return NULL; // 타겟 없음
 
@@ -219,7 +228,7 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 		removeTarget = findNode;
 		if(removeTarget->index == m_header->rootNode)
 		{
-			// PrintTree();
+			
 			// printf("Key : %d , FindNode : %llx\n", key, findNode);
 			// printf("remove target.right : %d\n", removeTarget->right);
 			m_header->rootNode = removeTarget->right;
@@ -280,14 +289,6 @@ RBTreeNode* RedBlackTree::RemoveNode(unsigned long long key)
 		if(GetNode(parent->left)==removeTarget) // 왼쪽에 자식이 1개밖에 없거나, BLACK LEFT 자식과 RED LEFT LEFT 손자만 있는 경우
 		{
 			parent->left = removeTarget->left;
-			if(parent->left != -1) // RED LEFT LEFT 손자가 있는 경우
-			{
-				RBTreeNode *redGrandChild = GetNode(parent->left);
-				redGrandChild->parent = parent->index;
-				redGrandChild->color = BLACK;
-
-				return removeTarget;
-			}
 		}
 		else
 		{
@@ -319,7 +320,7 @@ RBTreeNode* RedBlackTree::find(unsigned long long key)
 	RBTreeNode *pointer = GetNode(m_header->rootNode);
 
 	// PrintTree();
-	
+
 	while (pointer != NULL)
 	{
 		//std::cout<<"FindKey : "<<key<<" [C]["<<pointer->value.Key<<"] ["<<(int)(pointer->color)<<"] ["<<pointer->value.Value<<"]"<<pointer<<"\n";
@@ -650,7 +651,7 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 	}
 	else // 형제가 BLACK 인경우
 	{
-		char colorLeft, colorRight;
+		char colorLeft = BLACK, colorRight = BLACK;
 		if(sbling->left != -1 && GetNode(sbling->left)->color == RED) colorLeft = RED;
 		if(sbling->right != -1 && GetNode(sbling->right)->color == RED) colorRight = RED;
 		//case 1 double black
@@ -663,6 +664,7 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 			}
 			else
 			{
+				if(m_header->rootNode == parent->index) return; // root가 더블블랙이면 싱글블랙으로 바꾸고 완료
 				RemoveDoubleBlack(parent, GetNode(parent->parent));
 			}
 		}
@@ -672,12 +674,14 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 			if(colorRight==RED)
 			{
 				LeftRotate(sbling);
+				GetNode(sbling->right)->color = BLACK;
 			}
 			//case 3 is left but right nephew is black
 			else
 			{
 				RBTreeNode *leftNephew = GetNode(sbling->left);
-				leftNephew->color = BLACK;
+				leftNephew->color = parent->color;
+				parent->color = BLACK;
 				RightRotate(leftNephew);
 				LeftRotate(leftNephew);
 			}
@@ -688,12 +692,14 @@ void RedBlackTree::RemoveDoubleBlack(RBTreeNode *doubleBlack, RBTreeNode *parent
 			if(colorLeft==RED)
 			{
 				RightRotate(sbling);
+				GetNode(sbling->left)->color = BLACK;
 			}
 			//case 5 is right but left nephew is black
 			else
 			{
 				RBTreeNode *rightNephew = GetNode(sbling->right);
-				rightNephew->color = BLACK;
+				rightNephew->color = parent->color;
+				parent->color = BLACK;
 				LeftRotate(rightNephew);
 				RightRotate(rightNephew);
 			}

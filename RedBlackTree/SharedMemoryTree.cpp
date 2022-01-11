@@ -1,24 +1,6 @@
 
 #include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
-#include <errno.h>
 #include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-
-#include <time.h>
-#include <sys/time.h>
-#include <sys/types.h>   
-#include <sys/ipc.h>   
-#include <sys/msg.h>
-#include <sys/epoll.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <dirent.h>
-
 
 #include "SharedMemoryTree.h"
 
@@ -66,7 +48,7 @@ char* CSharedMemoryTree::operator[] (int key)
 	RBTreeNode *node = m_rbTree.find(key);
 	if(node==NULL)
 	{
-		dAppLog(LOG_DEBUG, "Add Key[%d]", key);
+		// dAppLog(LOG_DEBUG, "Add Key[%d]", key);
 		return Add(key);
 	}
 	UINT64 shmKey = node->value.Value;
@@ -202,6 +184,14 @@ int CSharedMemoryTree::Remove(UINT64 key)
 	m_count--;
 
 	return 0;
+}
+
+int CSharedMemoryTree::Reset()
+{
+	m_rbTree.reset();
+	Get_hashed_shm(&m_hsm_Memory, MAKE_SHM_KEY_FROM_INDEX(0), (void**)&m_pData);
+	memset(m_pData, 0, m_nArraySize * m_count);
+	m_count = 0;
 }
 
 void CSharedMemoryTree::printTree()

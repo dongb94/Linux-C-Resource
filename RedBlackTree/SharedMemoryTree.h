@@ -5,11 +5,10 @@
 #define MAKE_SHM_KEY_FROM_INDEX(index) (((unsigned long long)index)<<48)+1
 #endif // !MAKE_SHM_KEY_FROM_INDEX
 
-#include <Skeleton.h>
+#include <lwrite.h>
 #include <hashshm.h>
 #include <shmutil.h>
 
-#include <ServerSocket.h>
 #include <Packet.h>
 
 #include <RedBlackTree.h>
@@ -27,6 +26,7 @@ public:
 
 	char* Add(UINT64 key);
 	int Remove(UINT64 key);
+	int Reset();
 
 	void	printTree();
 
