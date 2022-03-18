@@ -1,6 +1,11 @@
 #include "EventTimer.h"
 #include <sched.h>
 
+
+#define GET_HASH_MEM(smHandle, key, pData) (Get_hashed_shm(&smHandle, key, (void**)&pData))
+#define NEW_HASH_MEM(smHandle, key, pData) (New_hashed_shm(&smHandle, key, (void**)&pData))
+
+
 USHORT EventTimerWheel::eventSerial;
 st_HashedShmHandle EventTimerWheel::m_shmTimerEvent;
 UINT32 *EventTimerWheel::hourHead[TIMER_WHEEL_SIZE], *EventTimerWheel::minuteHead[TIMER_WHEEL_SIZE], *EventTimerWheel::secondHead[TIMER_WHEEL_SIZE];
@@ -17,13 +22,15 @@ EventTimerWheel::EventTimerWheel()
 	timer->addTimeOut = AddTimeOut;
 	timer->addTimeOutDelay = AddTimeOut;
 	timer->tick = Tick;
+	timer->removeUVS = RemoveUVSEvent;
 	timer->remove = RemoveEvent;
+	timer->getEvent = GetEvent;
 	timer->getCurrentTime = GetCurrentTimeUINT64;
 	timer->getCurrentTimeTM = GetCurrentTimeTM;
 	timer->getMillisecondFromCurrentTime = GetMillisecondFromCurrentTime;
 	timer->getMillisecondFromCurrentTime2 = GetMillisecondFromCurrentTime;
 	timer->getDayAfterValue = GetDayAfterValue;
-	timer->getDayAfterShopItemResetType = GetDayAfterShopItemResetType;
+	timer->getDayAfterResetType = GetDayAfterResetType;
 	timer->getLastDayofMonth = GetLastDayofMonth;
 
 	eventSerial = 1;
@@ -197,6 +204,7 @@ int EventTimerWheel::InitSharedMemory()
 	dAppLog(LOG_DEBUG, "Init Event Timer SharedMemory End");
 }
 
+/// return 즉시 실행 = 0, 실패 < 0, 성공 tid
 int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 eventVar, bool repeat, int repeatCount, uint64 tid, bool overriding)
 {
 	return AddTimeOut(functionId, millisecond, eventVar, repeat, repeatCount, millisecond, tid, overriding);
@@ -204,12 +212,6 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 ev
 
 int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 eventVar, bool repeat, int repeatCount, uint64 repeatDelay, uint64 tid, bool overriding)
 {
-	if(startTime == 0)
-	{
-		RunEvent(functionId, eventVar);
-		return 1;
-	}
-
 	int res;
 	EventStruct* newEvent;
 
@@ -253,6 +255,23 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 	newEvent->repeat = repeat;
 	newEvent->repeatCount = repeatCount;
 
+	if(startTime == 0)
+	{
+		RunEvent(newEvent);
+		if(newEvent->repeat && repeatDelay !=0)
+		{
+			if(newEvent->repeatCount < 0)	// infinity repeat
+				AddTimeOut(newEvent->functionId, newEvent->millisecond, newEvent->eventVar, true, -1, newEvent->tid, true);
+			else if(newEvent->repeatCount > 0)
+				AddTimeOut(newEvent->functionId, newEvent->millisecond, newEvent->eventVar, true, newEvent->repeatCount-1, newEvent->tid, true);
+		}
+		else
+		{
+			memset(newEvent, 0, sizeof(EventStruct));
+		}
+		return 0;
+	}
+
 	int hour = startTime / 3600000;
 	int minute = startTime / 60000;
 	UINT32 *HeadKeyPointer = NULL;
@@ -267,7 +286,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 			return -3;
 		}
 
-		newEvent->leftCount = hour >> 3;	 // == hour / 8
+		newEvent->leftCount = (hour-1) >> 3;	 // == hour / 8
 		newEvent->leftMilliSecond = (startTime % 3600000) + (minuteCurrent * 60000) + (secondCurrent * 1000 / TIMER_WHEEL_TICK_PER_SECOND);
 	}
 	else if(minute != 0){
@@ -280,7 +299,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 			return -3;
 		}
 
-		newEvent->leftCount = minute >> 3;
+		newEvent->leftCount = (minute-1) >> 3;
 		newEvent->leftMilliSecond = (startTime % 60000) + (secondCurrent * 1000 / TIMER_WHEEL_TICK_PER_SECOND);
 	}
 	else{
@@ -330,6 +349,26 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 						hour, minute, newEvent->leftCount, newEvent->leftMilliSecond);
 
 	return newEvent->tid;
+}
+
+int EventTimerWheel::RemoveUVSEvent(uint64 tid)
+{
+	if(tid < 1 || tid >= TIMER_WHEEL_EVENT_SIZE) return 0;
+
+	EventStruct *st_event;
+	GetEvent(tid, &st_event);
+
+	if(st_event == NULL)
+	{
+		return -1;
+	}
+
+	CUniversalVariableSpace* UVS = (CUniversalVariableSpace*)smUniversalVariableSpace[0];
+	UVS->RemoveData(st_event->eventVar);
+
+	RemoveEvent(tid);
+
+	return 0;
 }
 
 int EventTimerWheel::RemoveEvent(uint64 tid)
@@ -410,7 +449,7 @@ int EventTimerWheel::Tick()
 		}
 		else if(st_event->leftCount <=0)
 		{
-			RunEvent(st_event->functionId, st_event->eventVar);
+			RunEvent(st_event);
 			
 			// 원소 제거
 			if(*(secondHead[*secondPointer]) == st_event->tid)
@@ -538,51 +577,46 @@ int EventTimerWheel::Tick()
 	return 2;
 }
 
-int EventTimerWheel::RunEvent(uint64 functionId, uint64 eventVar)
+int EventTimerWheel::RunEvent(EventStruct *st_evnet)
 {
-	dAppLog(LOG_DEBUG, "[RunEvent] Event Run [functionId : %lld][EventVar : %lld]", functionId, eventVar);
+	dAppLog(LOG_DEBUG, "[RunEvent] Event Run [functionId : %lld][EventVar : %lld]", st_evnet->functionId, st_evnet->eventVar);
 
-	switch (functionId)
+	switch (st_evnet->functionId)
 	{
 	case TIMER_FUNCTION_DISCONNECT_USER_LOGOUT :
-		DisconnectLogout(eventVar);
+		DisconnectLogout(st_evnet->eventVar);
+		break;
+
+	case TIMER_FUNCTION_REGEN_BOSS_MONSTER:
+		RegenBossMonster(st_evnet->eventVar);
+		break;
+
+	case TIMER_FUNCTION_CHARACTER_BUFF_END:
+		EndBuff(st_evnet->eventVar, st_evnet->tid);
 		break;
 
 	case TIMER_FUNCTION_ID_ADD_HP:
-		AddHp(eventVar);
+		AddHp(st_evnet->eventVar);
 		break;
-
-	case TIMER_EVENT_TEST:
-		TestEvent();
-		break;
-	
-	case TIMER_EVENT_TEST2:
-		TestEvent2();
-		break;
-
-	case TIMER_EVENT_TEST3:
-		TestEvent3();
-		break;
-
 
 	case TIMER_FUNCTION_EXP_DOUBLE_BUFF_END:
-		ExpDoubleBuffEnd(eventVar);
+		ExpDoubleBuffEnd(st_evnet->eventVar);
 		break;
 
-	case TIMER_FUNCTION_RESET_SHOP_DAILY_PURCHASE:
-		UpdateSellItemDB(eventVar);
+	case TIMER_FUNCTION_RESET_DAILY:
+		ResetEventTimer(st_evnet->eventVar);
 		break;
 
-	case TIMER_FUNCTION_RESET_SHOP_WEEKLY_PURCHASE:
-		UpdateSellItemDB(eventVar);
+	case TIMER_FUNCTION_RESET_WEEKLY:
+		ResetEventTimer(st_evnet->eventVar);
 		break;
 
-	case TIMER_FUNCTION_RESET_SHOP_MONTHLY_PURCHASE:
-		UpdateSellItemDB(eventVar);
+	case TIMER_FUNCTION_RESET_MONTHLY:
+		ResetEventTimer(st_evnet->eventVar);
 		break;
 
 	case TIMER_FINCTION_RESET_SHOP_FIXEDTIME_PURCHASE:
-		UpdateSellItemDB(eventVar);
+		ResetEventTimer(st_evnet->eventVar);
 		break;
 
 	default:
@@ -698,7 +732,7 @@ UINT64 EventTimerWheel::GetDayAfterValue(UCHAR value)
 	return (tm->tm_year-100) * 10000000000 + (tm->tm_mon + 1) * 100000000 + tm->tm_mday * 1000000 + tm->tm_hour * 10000 + tm->tm_min * 100 + tm->tm_sec;
 }
 
-time_t EventTimerWheel::GetDayAfterShopItemResetType(UCHAR ResetType)
+time_t EventTimerWheel::GetDayAfterResetType(UCHAR ResetType)
 {
 	struct timeb m_time;
 	ftime(&m_time);
@@ -720,19 +754,19 @@ time_t EventTimerWheel::GetDayAfterShopItemResetType(UCHAR ResetType)
 
 	switch (ResetType)
 	{
-	case SellItemDaily:
+	case ResetType_Daily:
 	{
 		tm->tm_mday++;
 	}	break;
 
-	case SellItemWeekly:
+	case ResetType_Weekly:
 	{
 		tm->tm_mday += 7;
 		int wday = 1 - tm->tm_wday;
 		tm->tm_mday += wday;
 	}	break;
 
-	case SellItemMonthly:
+	case ResetType_Monthly:
 	{
 		tm->tm_mday = 1;
 		tm->tm_mon++;
@@ -771,10 +805,10 @@ EventStruct* EventTimerWheel::operator[] (uint64 eventKey)
 {
 	int res;
 	eventKey = GET_HASH_KEY(eventKey);
-	res = Get_hashed_shm(&m_shmTimerEvent, eventKey, (void**)selectedEvent);
+	res = GET_HASH_MEM(m_shmTimerEvent, eventKey, selectedEvent);
 	if(res < 0)
 	{
-		res = New_hashed_shm(&m_shmTimerEvent, eventKey, (void**)selectedEvent);
+		res = NEW_HASH_MEM(m_shmTimerEvent, eventKey, selectedEvent);
 		if(res < 0)
 		{
 			dAppLog(LOG_DEBUG, "New Event Hash shm Error [res : %d][eventKey : %llx]", res, eventKey);

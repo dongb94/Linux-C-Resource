@@ -25,12 +25,20 @@
 #define TIMER_WHEEL_EVENT_SIZE_MINUTE 10000
 #define TIMER_WHEEL_EVENT_SIZE_SECOND 10000
 
+#define TIME_DAY				86400
+#define TIME_HOUR				3600
+#define TIME_MINUTE				60
 #define MILLISECOND_PER_DAY		86400000
 #define MILLISECOND_PER_WEEK	604800000
 
 #define	GET_TIMER_KEY(slot)	(((uint64)slot << 48)+1)
 
 #define CHECK_LEAP_YEAR(year) (((year+1900)%4==0 && (year+1900)%100!=0) || (year+1900)%400==0)
+
+
+#define TID_RESET_DAILY		20
+#define TID_RESET_WEEK		21
+#define TID_RESET_MONTH		23
 
 typedef int (*TimerFunc)();
 
@@ -55,7 +63,10 @@ struct TimerRemoteControler
 
 	int (*tick) (void);
 	int (*stop) (void);
+	int (*removeUVS) (uint64 tid);
 	int (*remove) (uint64 tid);
+
+	int (*getEvent) (uint64 eventKey, EventStruct **event);
 
 	UINT64 (*getCurrentTime) (void);
 
@@ -63,7 +74,7 @@ struct TimerRemoteControler
 	UINT64 (*getMillisecondFromCurrentTime) (tm *time);
 	UINT64 (*getMillisecondFromCurrentTime2) (time_t *time);
 	UINT64 (*getDayAfterValue) (unsigned char value);
-	time_t (*getDayAfterShopItemResetType) (unsigned char ResetType);
+	time_t (*getDayAfterResetType) (unsigned char ResetType);
 	int (*getLastDayofMonth) (int Year, int Month);
 };
 
@@ -84,16 +95,17 @@ public :
 	static int AddTimeOut(uint64 functionId, uint64 millisecond, uint64 eventVar, bool repeat = false, int repeatCount = -1, uint64 tid = 0, bool overriding = false);
 	static int AddTimeOut(uint64 functionId, uint64 startTime, uint64 eventVar, bool repeat, int repeatCount, uint64 repeatDelay, uint64 tid, bool overriding = false);
 
+	static int RemoveUVSEvent(uint64 tid);
 	static int RemoveEvent(uint64 tid);
 
-	static int RunEvent(uint64 functionId, uint64 eventVar);
+	static int RunEvent(EventStruct *st_evnet);
 
 	static int GetEvent(uint64 eventKey, EventStruct **event);
 
 	static UINT64 GetCurrentTimeUINT64();
 	static tm* GetCurrentTimeTM();
 	static UINT64 GetDayAfterValue(UCHAR value);
-	static time_t GetDayAfterShopItemResetType(UCHAR ResetType);
+	static time_t GetDayAfterResetType(UCHAR ResetType);
 	static int GetLastDayofMonth(int Year, int Month);
 
 
