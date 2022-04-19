@@ -13,8 +13,7 @@ CSharedMemoryTree::CSharedMemoryTree()
 	m_pData = NULL;
 }
 
-CSharedMemoryTree::~CSharedMemoryTree()
-{}
+CSharedMemoryTree::~CSharedMemoryTree(){}
 
 int CSharedMemoryTree::CreateArray(key_t KeyValue, unsigned int ArrayNum, unsigned int ArraySize)
 {
@@ -24,13 +23,20 @@ int CSharedMemoryTree::CreateArray(key_t KeyValue, unsigned int ArrayNum, unsign
 	if (nRet < 0)
 	{
 		dAppLog(LOG_CRI, "[CreateTree] [%lld] Init_hashed_shm: %s", KeyValue, Msg_hashed_shm(nRet));
+		throw KeyValue;
 		return -1;
 	}
 
 	m_nSizeNum = ArrayNum;
 	m_nArraySize = ArraySize;
 
-	m_count = m_rbTree.init(KeyValue + 1, ArrayNum);
+	nRet = m_rbTree.init(KeyValue + 1, ArrayNum, &m_count);
+	if(nRet <0)
+	{
+		dAppLog(LOG_CRI, "[CreateTree] [%lld] init rbTree Error [Ret %d]", KeyValue, nRet);
+		throw KeyValue;
+		return -1;
+	}
 
 	return 1;
 }
@@ -48,11 +54,13 @@ char* CSharedMemoryTree::operator[] (int key)
 	RBTreeNode *node = m_rbTree.find(key);
 	if(node==NULL)
 	{
+		// if(m_nArraySize == 2400)
 		// dAppLog(LOG_DEBUG, "Add Key[%d]", key);
 		return Add(key);
 	}
 	UINT64 shmKey = node->value.Value;
-	// dAppLog(LOG_DEBUG, "Find shmKey %lld", shmKey);
+	// if(m_nArraySize == 2400)
+	// dAppLog(LOG_DEBUG, "Find shmKey %d->%lld", key, shmKey);
 
 	int res;
 	res = Get_hashed_shm(&m_hsm_Memory, MAKE_SHM_KEY_FROM_INDEX(shmKey), (void**)&m_pData);
@@ -96,7 +104,7 @@ char* CSharedMemoryTree::Add(UINT64 key)
 	RBTreeNode *node = m_rbTree.find(key);
 	if(node==NULL)
 	{
-		node = m_rbTree.insert(key, m_count);
+		node = m_rbTree.insert(key, *m_count);
 		if(node == NULL)
 		{
 			dAppLog(LOG_CRI, "Tree Is Full [InsertKey %d]", key);
@@ -119,8 +127,6 @@ char* CSharedMemoryTree::Add(UINT64 key)
 		memset(m_pData, 0, m_nArraySize);
 	}
 
-	m_count++;
-
 	// printf("ADD TREE [KEY %lld][NODE ( %lld , %lld )][Count %d]\n",key, node->value.Key, node->value.Value, m_count);
 
 	return m_pData;
@@ -137,7 +143,7 @@ int CSharedMemoryTree::Remove(UINT64 key)
 		return 0;
 	}
 
-	if(m_count <= 0)
+	if(*m_count <= 0)
 	{
 		dAppLog(LOG_DEBUG, "SharedMemoryTree Remove Error : m_count is 0 [key %llx]",key);
 		return 0;
@@ -155,22 +161,22 @@ int CSharedMemoryTree::Remove(UINT64 key)
 	}
 
 	char *updateData;
-	res = Get_hashed_shm(&m_hsm_Memory, MAKE_SHM_KEY_FROM_INDEX(m_count-1), (void**)&updateData);
+	res = Get_hashed_shm(&m_hsm_Memory, MAKE_SHM_KEY_FROM_INDEX((*m_count)-1), (void**)&updateData);
 	if(res < 0)
 	{
-		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Get Last node Error [count %d]",m_count);
+		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Get Last node Error [count %d]",*m_count);
 		return -1;
 	}
 
 	RBTreeNode *lastNode = m_rbTree.getLastNode();
 	if(lastNode == NULL)
 	{
-		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Last node IS NULL [count %d]",m_count);
+		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Last node IS NULL [count %d]",*m_count);
 		return -1;
 	}
-	if(lastNode->value.Value != m_count-1)
+	if(lastNode->value.Value != (*m_count)-1)
 	{
-		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Last node info not currect [count %d][last node value %d]",m_count, lastNode->value.Value);
+		dAppLog(LOG_CRI, "SharedMemoryTree Remove Error : Last node info not currect [count %d][last node value %d]",*m_count, lastNode->value.Value);
 		return 0;
 	}
 
@@ -181,8 +187,6 @@ int CSharedMemoryTree::Remove(UINT64 key)
 	m_rbTree.Remove(key);
 	// printf("\t3(%llx,%lld)<-(%llx,%lld)\n", node->value.Key, node->value.Value, lastNode->value.Key, lastNode->value.Value);
 
-	m_count--;
-
 	return 0;
 }
 
@@ -190,8 +194,7 @@ int CSharedMemoryTree::Reset()
 {
 	m_rbTree.reset();
 	Get_hashed_shm(&m_hsm_Memory, MAKE_SHM_KEY_FROM_INDEX(0), (void**)&m_pData);
-	memset(m_pData, 0, m_nArraySize * m_count);
-	m_count = 0;
+	memset(m_pData, 0, m_nArraySize * m_nSizeNum);
 }
 
 void CSharedMemoryTree::printTree()

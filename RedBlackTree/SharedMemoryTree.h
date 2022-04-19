@@ -30,7 +30,7 @@ public:
 
 	void	printTree();
 
-	int	m_count;
+	int	*m_count;
 	int	m_nSizeNum;
 
 private:

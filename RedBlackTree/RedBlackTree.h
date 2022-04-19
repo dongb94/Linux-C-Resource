@@ -1,12 +1,16 @@
 #ifndef ___RED____BLACK_TREE_
 #define ___RED____BLACK_TREE_
 
+//#define FILE_DEBUGING
+#ifdef FILE_DEBUGING
+#include <fstream>
+#endif
 #include <iostream>
 #include <cstring>
 #include <stdio.h>
 #include <errno.h>
 #include <sys/shm.h> 
-#include <sys/ipc.h> 
+#include <sys/ipc.h>
 
 enum RedBlackNodeColor
 {
@@ -39,7 +43,13 @@ struct RBHeader
 class RedBlackTree
 {
 private:
+
+#ifdef FILE_DEBUGING
+	std::fstream fs;
+#endif
 	
+	unsigned long long		m_key;
+
 	char		*memStart;
 
 	RBHeader	*m_header;
@@ -65,7 +75,7 @@ public:
 	RedBlackTree();
 	~RedBlackTree();
 
-	int	init(key_t key, int maxSize);
+	int	init(key_t key, int maxSize, int **ppCount);
 	int reset();
 
 	RBTreeNode* insert(unsigned long long key, unsigned long long value);
