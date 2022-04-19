@@ -6,6 +6,7 @@
 #define NEW_HASH_MEM(smHandle, key, pData) (New_hashed_shm(&smHandle, key, (void**)&pData))
 
 
+bool EventTimerWheel::flag;
 USHORT EventTimerWheel::eventSerial;
 st_HashedShmHandle EventTimerWheel::m_shmTimerEvent;
 UINT32 *EventTimerWheel::hourHead[TIMER_WHEEL_SIZE], *EventTimerWheel::minuteHead[TIMER_WHEEL_SIZE], *EventTimerWheel::secondHead[TIMER_WHEEL_SIZE];
@@ -25,14 +26,16 @@ EventTimerWheel::EventTimerWheel()
 	timer->removeUVS = RemoveUVSEvent;
 	timer->remove = RemoveEvent;
 	timer->getEvent = GetEvent;
-	timer->getCurrentTime = GetCurrentTimeUINT64;
+	timer->getCurrentTimeFormat = GetCurrentTimeUINT64;
 	timer->getCurrentTimeTM = GetCurrentTimeTM;
+	timer->getCurrentSecondFromTime = GetCurrentSecondFromTime;
 	timer->getMillisecondFromCurrentTime = GetMillisecondFromCurrentTime;
 	timer->getMillisecondFromCurrentTime2 = GetMillisecondFromCurrentTime;
 	timer->getDayAfterValue = GetDayAfterValue;
 	timer->getDayAfterResetType = GetDayAfterResetType;
 	timer->getLastDayofMonth = GetLastDayofMonth;
 
+	flag = false;
 	eventSerial = 1;
 
 	InitSharedMemory();
@@ -94,6 +97,7 @@ int EventTimerWheel::InitSharedMemory()
 	int res;
 	UINT64 *headKey;
 	UINT64 key;
+	flag = false;
 
 	dAppLog(LOG_DEBUG, "Init Event Timer SharedMemory");
 
@@ -215,6 +219,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 	int res;
 	EventStruct* newEvent;
 
+
 	if(tid == 0)
 	{
 		tid = eventSerial + 10000;
@@ -252,11 +257,13 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 	newEvent->millisecond = repeatDelay;
 	newEvent->functionId = functionId;
 	newEvent->eventVar = eventVar;
+	newEvent->triggerTime = time(NULL) + startTime;
 	newEvent->repeat = repeat;
 	newEvent->repeatCount = repeatCount;
 
 	if(startTime == 0)
 	{
+		dAppLog(LOG_DEBUG, "startTime == 0 [tid %lld][functionID %lld][EventVar %lld]", newEvent->tid, newEvent->functionId, newEvent->eventVar);
 		RunEvent(newEvent);
 		if(newEvent->repeat && repeatDelay !=0)
 		{
@@ -272,6 +279,10 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 		return 0;
 	}
 
+	
+	while(flag){usleep(1000);}
+	flag = true;
+
 	int hour = startTime / 3600000;
 	int minute = startTime / 60000;
 	UINT32 *HeadKeyPointer = NULL;
@@ -283,6 +294,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 		if(HeadKeyPointer == NULL)
 		{
 			dAppLog(LOG_CRI, "Get Hour Event Shared Memory Error [hourslot : %d][key : %llx]", hourSlot, GET_TIMER_KEY(hourSlot));
+			flag = false;
 			return -3;
 		}
 
@@ -296,11 +308,14 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 		if(HeadKeyPointer == NULL)
 		{
 			dAppLog(LOG_CRI, "Get Minute Event Shared Memory Error [minuteSlot : %d][key : %llx]", minuteSlot, GET_TIMER_KEY(minuteSlot));
+			flag = false;
 			return -3;
 		}
 
 		newEvent->leftCount = (minute-1) >> 3;
 		newEvent->leftMilliSecond = (startTime % 60000) + (secondCurrent * 1000 / TIMER_WHEEL_TICK_PER_SECOND);
+
+		// dAppLog(LOG_DEBUG, " Add Time Tick [tid %lld][startTime %lld][fid %lld][MinuteSlot %d][leftCount %d][secondPointer %d]", tid, startTime, newEvent->functionId, minuteSlot, newEvent->leftCount, *secondPointer);
 	}
 	else{
 		int timeTick = startTime * TIMER_WHEEL_TICK_PER_SECOND / 1000;
@@ -310,18 +325,20 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 		if(HeadKeyPointer == NULL)
 		{
 			dAppLog(LOG_CRI, "Get Second Event Shared Memory Error [secondSlot : %d][key : %llx]", secondSlot, GET_TIMER_KEY(secondSlot));
+			flag = false;
 			return -3;
 		}
 
 		newEvent->leftCount = timeTick >> 3;
 		newEvent->leftMilliSecond = startTime % (1000 / TIMER_WHEEL_TICK_PER_SECOND);
 
-		dAppLog(LOG_DEBUG, " Add Time Tick [tid %lld][startTime %lld][fid %lld][timeTick %d][secondSlot %d][leftCount %d][secondPointer %d]", tid, startTime, newEvent->functionId, timeTick, secondSlot, newEvent->leftCount, *secondPointer);
+		// dAppLog(LOG_DEBUG, " Add Time Tick [tid %lld][startTime %lld][fid %lld][timeTick %d][secondSlot %d][leftCount %d][secondPointer %d]", tid, startTime, newEvent->functionId, timeTick, secondSlot, newEvent->leftCount, *secondPointer);
 	}
 
 	if(HeadKeyPointer == NULL)
 	{
 		dAppLog(LOG_CRI, "[[HeadKeyPointer was NULL]]");
+		flag = false;
 		return -2;
 	}
 
@@ -335,6 +352,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 		if(res < 0)
 		{
 			dAppLog(LOG_CRI, "Get Timer Event Error (Add Time out event) [tid : %lld]", *HeadKeyPointer);
+			flag = false;
 			return -1;
 		}
 
@@ -344,9 +362,11 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 	}
 
 	// printf("Add New Event [tid : %d]\n", newEvent->tid);
-	dAppLog(LOG_DEBUG, "Add New Event [pre %lld][next %lld][tid %lld][startTime %lld][function %lld][var1 %lld][repeat %d][repeat count %d][repeat delay %lld][%d:%d][leftCount : %d][leftMillisecond : %d]", 
+	dAppLog(LOG_DEBUG, "Add New Event [pre %5lld][next %5lld][tid %5lld][startTime %9lld][function %5lld][var1 %lld][repeat %d][repeat count %d][repeat delay %lld][%d:%d][leftCount : %d][leftMillisecond : %d]", 
 						newEvent->preEventKey, newEvent->nextEventKey, newEvent->tid, startTime, newEvent->functionId, eventVar, newEvent->repeat, newEvent->repeatCount, newEvent->millisecond,
 						hour, minute, newEvent->leftCount, newEvent->leftMilliSecond);
+
+	flag = false;
 
 	return newEvent->tid;
 }
@@ -375,15 +395,19 @@ int EventTimerWheel::RemoveEvent(uint64 tid)
 {
 	if(tid < 1 || tid >= TIMER_WHEEL_EVENT_SIZE) return 0;
 
+	while(flag){usleep(1000);}
+	flag = true;
+
 	EventStruct *st_event, *st_preEvent, *st_nextEvent;
 	GetEvent(tid, &st_event);
 
 	if(st_event == NULL)
 	{
+		flag = false;
 		return -1;
 	}
 
-	dAppLog(LOG_DEBUG, "Remove Event [tid %lld][var %lld]", tid, st_event->eventVar);
+	// dAppLog(LOG_DEBUG, "Remove Event [tid %lld][var %lld]", tid, st_event->eventVar);
 
 	// 원소 제거
 	if(st_event->preEventKey != 0)
@@ -421,6 +445,8 @@ int EventTimerWheel::RemoveEvent(uint64 tid)
 
 	memset(st_event, 0, sizeof(EventStruct));
 
+	flag = false;
+
 	return 0;
 }
 
@@ -430,156 +456,187 @@ int EventTimerWheel::Tick()
 	INT64 key;
 	UINT32 HeadKeyPointer;
 
-	EventStruct *st_eventGroup;
-	EventStruct *st_event;
-	EventStruct	*st_preEvent, *st_nextEvent;
+	EventStruct *pst_event;
+	EventStruct	*pst_preEvent, *pst_nextEvent;
+
+	EventStruct st_eventData;
 
 	if(secondPointer == NULL) return 0;
+
+	while(flag){usleep(1000);}
+	flag = true;
+
 	// printf("tick [%d:%02d:%04d]\n", *hourPointer, minuteCurrent, secondCurrent);
 	HeadKeyPointer = *(secondHead[*secondPointer]);
 	// printf("%d\n", HeadKeyPointer);
 	while(HeadKeyPointer != 0)
 	{
-		GetEvent(HeadKeyPointer, &st_event);
+		GetEvent(HeadKeyPointer, &pst_event);
 		// dAppLog(LOG_DEBUG, "Event Tick SECOND[TID %lld][leftCount %d]", st_event->tid, st_event->leftCount);
-		if(st_event->tid == 0)
+		if(pst_event->tid == 0)
 		{
 			dAppLog(LOG_CRI, "event error [%d]", HeadKeyPointer);
+			flag = false;
 			return -1;
 		}
-		else if(st_event->leftCount <=0)
-		{
-			RunEvent(st_event);
-			
+		else if(pst_event->leftCount <=0)
+		{			
 			// 원소 제거
-			if(*(secondHead[*secondPointer]) == st_event->tid)
+			if(*(secondHead[*secondPointer]) == pst_event->tid)
 			{
-				*(secondHead[*secondPointer]) = st_event->nextEventKey;
+				*(secondHead[*secondPointer]) = pst_event->nextEventKey;
 			}
-			HeadKeyPointer = st_event->nextEventKey;
+			HeadKeyPointer = pst_event->nextEventKey;
 
-			if(st_event->preEventKey != 0)
+			if(pst_event->preEventKey != 0)
 			{
-				GetEvent(st_event->preEventKey, &st_preEvent);
-				st_preEvent->nextEventKey = st_event->nextEventKey;
+				GetEvent(pst_event->preEventKey, &pst_preEvent);
+				pst_preEvent->nextEventKey = pst_event->nextEventKey;
 			}
-			if(st_event->nextEventKey != 0)
+			if(pst_event->nextEventKey != 0)
 			{
-				GetEvent(st_event->nextEventKey, &st_nextEvent);
-				st_nextEvent->preEventKey = st_event->preEventKey;
+				GetEvent(pst_event->nextEventKey, &pst_nextEvent);
+				pst_nextEvent->preEventKey = pst_event->preEventKey;
 			}
 
-			if(st_event->repeat)
+			st_eventData = *pst_event; // 값 복사
+			if(pst_event->repeat)
 			{
-				if(st_event->repeatCount < 0)	// infinity repeat
-					AddTimeOut(st_event->functionId, st_event->millisecond, st_event->eventVar, true, -1, st_event->tid, true);
-				else if(st_event->repeatCount > 0)
-					AddTimeOut(st_event->functionId, st_event->millisecond, st_event->eventVar, true, st_event->repeatCount-1, st_event->tid, true);
+				dAppLog(LOG_DEBUG, "[Tick] [functionID %lld][Second %lld][EventVar %lld][Repeat %d][Tid %lld]", pst_event->functionId, pst_event->millisecond, pst_event->eventVar, pst_event->repeat, pst_event->tid);
+				flag = false;
+				if(pst_event->repeatCount < 0)	// infinity repeat
+					AddTimeOut(pst_event->functionId, pst_event->millisecond, pst_event->eventVar, true, -1, pst_event->tid, true);
+				else if(pst_event->repeatCount > 0)
+					AddTimeOut(pst_event->functionId, pst_event->millisecond, pst_event->eventVar, true, pst_event->repeatCount-1, pst_event->tid, true);
+				while(flag){usleep(1000);}
+				flag = true;
 			}
 			else{
-				memset(st_event, 0, sizeof(EventStruct));
+				memset(pst_event, 0, sizeof(EventStruct));
 			}
+
+			flag = false;
+			RunEvent(&st_eventData);
+			while(flag){usleep(1000);}
+			flag = true;
 
 			continue;
 		}
 		else
 		{
 			// printf("[TID %lld][Tick %d][left %d]\n", st_event->tid, *secondPointer, st_event->leftCount);
-			st_event->leftCount--;
+			pst_event->leftCount--;
 		}
 
-		HeadKeyPointer = st_event->nextEventKey;
+		HeadKeyPointer = pst_event->nextEventKey;
 		//printf("%d\n", HeadKeyPointer);
 	}
 
 	*secondPointer = (*secondPointer + 1) & 0b111;
 	secondCurrent = (secondCurrent + 1) % (60 * TIMER_WHEEL_TICK_PER_SECOND);
-	if(secondCurrent != 0) return 0;
+	if(secondCurrent != 0){
+		flag = false;
+		return 0;
+	}
 
-	// printf("tick minute [%d:%02d:%04d]\n", *hourPointer, minuteCurrent, secondCurrent);
+	// printf("tick minute [%d:%02d:%04d] minute pointer [%d]\n", *hourPointer, minuteCurrent, secondCurrent, *minutePointer);
 	HeadKeyPointer = *(minuteHead[*minutePointer]);
 	while(HeadKeyPointer != 0)
 	{
-		GetEvent(HeadKeyPointer, &st_event);
-		HeadKeyPointer = st_event->nextEventKey; // 내리면 안됨.
+		GetEvent(HeadKeyPointer, &pst_event);
+		HeadKeyPointer = pst_event->nextEventKey; // 내리면 안됨.
 		// dAppLog(LOG_DEBUG, "Event Tick MINITE[TID %lld][leftCount %d]", st_event->tid, st_event->leftCount);
-		if(st_event->leftCount <=0)
+		if(pst_event->leftCount <=0)
 		{
 			
 			// 원소 제거
-			if(st_event->preEventKey != 0)
+			if(pst_event->preEventKey != 0)
 			{
-				GetEvent(st_event->preEventKey, &st_preEvent);
-				st_preEvent->nextEventKey = st_event->nextEventKey;
+				GetEvent(pst_event->preEventKey, &pst_preEvent);
+				pst_preEvent->nextEventKey = pst_event->nextEventKey;
 			}
-			if(st_event->nextEventKey != 0)
+			if(pst_event->nextEventKey != 0)
 			{
-				GetEvent(st_event->nextEventKey, &st_nextEvent);
-				st_nextEvent->preEventKey = st_event->preEventKey;
+				GetEvent(pst_event->nextEventKey, &pst_nextEvent);
+				pst_nextEvent->preEventKey = pst_event->preEventKey;
+			}
+
+			// 헤드 노드 갱신
+			if(*(minuteHead[*minutePointer]) == pst_event->tid)
+			{
+				*(minuteHead[*minutePointer]) = pst_event->nextEventKey;
 			}
 
 			// 타이머 휠 갱신
-			AddTimeOut(st_event->functionId, st_event->leftMilliSecond, st_event->eventVar, st_event->repeat, st_event->repeatCount, st_event->millisecond, st_event->tid, true);
-
-			if(*(minuteHead[*minutePointer]) == st_event->tid)
-			{
-				*(minuteHead[*minutePointer]) = st_event->nextEventKey;
-			}
+			flag = false;
+			AddTimeOut(pst_event->functionId, pst_event->leftMilliSecond, pst_event->eventVar, pst_event->repeat, pst_event->repeatCount, pst_event->millisecond, pst_event->tid, true);
+			while(flag){usleep(1000);}
+			flag = true;
 		}
 		else
 		{
-			st_event->leftCount--;
+			pst_event->leftCount--;
 		}
 	}
 
 	*minutePointer = (*minutePointer + 1) & 0b111;
 	minuteCurrent = (minuteCurrent + 1) % 60;
-	if(minuteCurrent != 0) return 1;
+	if(minuteCurrent != 0) 
+	{
+		flag = false;
+		return 1;
+	}
 
 	// printf("tick hour [%d:%02d:%04d]\n", *hourPointer, minuteCurrent, secondCurrent);
 	HeadKeyPointer = *(hourHead[*hourPointer]);
 	while(HeadKeyPointer != 0)
 	{
-		GetEvent(HeadKeyPointer, &st_event);
-		HeadKeyPointer = st_event->nextEventKey;
+		GetEvent(HeadKeyPointer, &pst_event);
+		HeadKeyPointer = pst_event->nextEventKey;
 		// dAppLog(LOG_DEBUG, "Event Tick HOUR[TID %lld][leftCount %d]", st_event->tid, st_event->leftCount);
-		if(st_event->leftCount <=0)
+		if(pst_event->leftCount <=0)
 		{
 			// 원소 제거
-			if(st_event->preEventKey != 0)
+			if(pst_event->preEventKey != 0)
 			{
-				GetEvent(st_event->preEventKey, &st_preEvent);
-				st_preEvent->nextEventKey = st_event->nextEventKey;
+				GetEvent(pst_event->preEventKey, &pst_preEvent);
+				pst_preEvent->nextEventKey = pst_event->nextEventKey;
 			}
-			if(st_event->nextEventKey != 0)
+			if(pst_event->nextEventKey != 0)
 			{
-				GetEvent(st_event->nextEventKey, &st_nextEvent);
-				st_nextEvent->preEventKey = st_event->preEventKey;
+				GetEvent(pst_event->nextEventKey, &pst_nextEvent);
+				pst_nextEvent->preEventKey = pst_event->preEventKey;
+			}
+
+			// 헤드 노드 갱신
+			if(*(hourHead[*hourPointer]) == pst_event->tid)
+			{
+				*(hourHead[*hourPointer]) = pst_event->nextEventKey;
 			}
 
 			// 타이머 휠 갱신
-			AddTimeOut(st_event->functionId, st_event->leftMilliSecond, st_event->eventVar, st_event->repeat, st_event->repeatCount, st_event->millisecond, st_event->tid, true);
+			flag = false;
+			AddTimeOut(pst_event->functionId, pst_event->leftMilliSecond, pst_event->eventVar, pst_event->repeat, pst_event->repeatCount, pst_event->millisecond, pst_event->tid, true);
+			while(flag){usleep(1000);}
+			flag = true;
 
-			if(*(hourHead[*hourPointer]) == st_event->tid)
-			{
-				*(hourHead[*hourPointer]) = st_event->nextEventKey;
-			}
 		}
 		else
 		{
-			st_event->leftCount--;
+			pst_event->leftCount--;
 		}
 
 	}
 
 	*hourPointer = (*hourPointer + 1) & 0b111;
 
+	flag = false;
 	return 2;
 }
 
 int EventTimerWheel::RunEvent(EventStruct *st_evnet)
 {
-	dAppLog(LOG_DEBUG, "[RunEvent] Event Run [functionId : %lld][EventVar : %lld]", st_evnet->functionId, st_evnet->eventVar);
+	// dAppLog(LOG_DEBUG, "[RunEvent] Event Run [tid : %lld][functionId : %lld][EventVar : %lld]", st_evnet->tid, st_evnet->functionId, st_evnet->eventVar);
 
 	switch (st_evnet->functionId)
 	{
@@ -587,8 +644,8 @@ int EventTimerWheel::RunEvent(EventStruct *st_evnet)
 		DisconnectLogout(st_evnet->eventVar);
 		break;
 
-	case TIMER_FUNCTION_REGEN_BOSS_MONSTER:
-		RegenBossMonster(st_evnet->eventVar);
+	case TIMER_FUNCTION_EVENT_BOSS_MONSTER:
+		EventBossMonster(st_evnet->eventVar);
 		break;
 
 	case TIMER_FUNCTION_CHARACTER_BUFF_END:
@@ -598,6 +655,16 @@ int EventTimerWheel::RunEvent(EventStruct *st_evnet)
 	case TIMER_FUNCTION_ID_ADD_HP:
 		AddHp(st_evnet->eventVar);
 		break;
+
+	case TIMER_FUNCTION_DUNGEON_CLEAR_TIME_OVER:
+	{
+		DungeonTimeOut(st_evnet->eventVar);
+	}	break;
+
+	case TIMER_FUNCTION_DUNGEON_USE_TIME_END:
+	{
+		FeildDungeonTimeOut(st_evnet->eventVar);
+	}	break;
 
 	case TIMER_FUNCTION_EXP_DOUBLE_BUFF_END:
 		ExpDoubleBuffEnd(st_evnet->eventVar);
@@ -626,22 +693,40 @@ int EventTimerWheel::RunEvent(EventStruct *st_evnet)
 	return 0;
 }
 
-int EventTimerWheel::GetEvent(uint64 eventKey, EventStruct **event)
+int EventTimerWheel::GetEvent(uint64 tid, EventStruct **event)
 {
 	int res;
-	eventKey = GET_HASH_KEY(eventKey);
-	res = Get_hashed_shm(&m_shmTimerEvent, eventKey, (void**)event);
+	tid = GET_HASH_KEY(tid);
+	res = Get_hashed_shm(&m_shmTimerEvent, tid, (void**)event);
 	if(res < 0)
 	{
-		res = New_hashed_shm(&m_shmTimerEvent, eventKey, (void**)event);
+		res = New_hashed_shm(&m_shmTimerEvent, tid, (void**)event);
 		if(res < 0)
 		{
-			dAppLog(LOG_DEBUG, "New Event Hash shm Error [res : %d][eventKey : %llx]", res, eventKey);
+			dAppLog(LOG_DEBUG, "New Event Hash shm Error [res : %d][eventKey : %llx]", res, tid);
 			return -1;
 		}
 	}
 
 	return 0;
+}
+
+UINT64 EventTimerWheel::GetTriggerTime(uint64 tid)
+{
+	if(tid < 0) return 0;
+	EventStruct *event;
+	GetEvent(tid, &event);
+	if(event == NULL) return 0;
+	return event->triggerTime;
+}
+
+UINT64 EventTimerWheel::GetLeftTime(uint64 tid)
+{
+	if(tid < 0) return 0;
+	EventStruct *event;
+	GetEvent(tid, &event);
+	if(event == NULL) return 0;
+	return event->triggerTime - time(NULL);
 }
 
 UINT64 EventTimerWheel::GetCurrentTimeUINT64()
@@ -662,6 +747,16 @@ tm* EventTimerWheel::GetCurrentTimeTM()
 	tm = localtime(&m_time.time);
 
 	return tm;
+}
+
+UINT64 EventTimerWheel::GetCurrentSecondFromTime()
+{
+	struct timeb m_time;
+	ftime(&m_time);
+	struct tm *tm;
+	tm = localtime(&m_time.time);
+
+	return tm->tm_hour * 3600 + tm->tm_min * 60 + tm->tm_sec;
 }
 
 UINT64 EventTimerWheel::GetMillisecondFromCurrentTime(tm *time)

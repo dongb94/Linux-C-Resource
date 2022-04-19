@@ -35,6 +35,7 @@
 
 #define CHECK_LEAP_YEAR(year) (((year+1900)%4==0 && (year+1900)%100!=0) || (year+1900)%400==0)
 
+#define MAKE_MINUTE_TO_SECOND(minute) (TIME_MINUTE * minute)
 
 #define TID_RESET_DAILY		20
 #define TID_RESET_WEEK		21
@@ -52,6 +53,7 @@ struct EventStruct
 	int			leftMilliSecond;
 	uint64		functionId;
 	uint64		eventVar;
+	uint64		triggerTime;
 	bool		repeat;
 	int			repeatCount;
 };
@@ -66,11 +68,13 @@ struct TimerRemoteControler
 	int (*removeUVS) (uint64 tid);
 	int (*remove) (uint64 tid);
 
-	int (*getEvent) (uint64 eventKey, EventStruct **event);
+	int (*getEvent) (uint64 tid, EventStruct **event);
 
-	UINT64 (*getCurrentTime) (void);
-
+	UINT64 (*getTriggerTime) (uint64 tid);
+	UINT64 (*getLeftTime) (uint64 tid);
+	UINT64 (*getCurrentTimeFormat) (void);
 	tm* (*getCurrentTimeTM) (void);
+	UINT64 (*getCurrentSecondFromTime) (void);
 	UINT64 (*getMillisecondFromCurrentTime) (tm *time);
 	UINT64 (*getMillisecondFromCurrentTime2) (time_t *time);
 	UINT64 (*getDayAfterValue) (unsigned char value);
@@ -102,8 +106,11 @@ public :
 
 	static int GetEvent(uint64 eventKey, EventStruct **event);
 
+	static UINT64 GetTriggerTime(uint64 tid);
+	static UINT64 GetLeftTime(uint64 tid);
 	static UINT64 GetCurrentTimeUINT64();
 	static tm* GetCurrentTimeTM();
+	static UINT64 GetCurrentSecondFromTime();
 	static UINT64 GetDayAfterValue(UCHAR value);
 	static time_t GetDayAfterResetType(UCHAR ResetType);
 	static int GetLastDayofMonth(int Year, int Month);
@@ -111,8 +118,11 @@ public :
 
 	static UINT64 GetMillisecondFromCurrentTime(tm *time);
 	static UINT64 GetMillisecondFromCurrentTime(time_t *time);
+	static UINT64 GetMillisecondFromUINT64(UINT64 time);
 
 private :
+
+	static bool flag;
 
 	static USHORT eventSerial;
 
