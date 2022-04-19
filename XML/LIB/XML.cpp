@@ -30,6 +30,7 @@ int XML::At(unsigned long long index, XML_BASE** ppData)
 }
 
 // XML KEY 값으로 이분 검색
+/// Return - 성공 1, 실패 음수값
 int XML::GetXMLData(unsigned long long dataKey, XML_BASE** ppData)
 {
 	int low, high, searchPoint;
@@ -72,7 +73,7 @@ int XML::GetXMLData(unsigned long long dataKey, XML_BASE** ppData)
 		}
 
 		if(high < low) {
-			dAppLog(LOG_DEBUG, "XML Data Not Set [%d:%d][target : %d][current : %d]", low, high, dataKey, (*ppData)->Key);
+			// dAppLog(LOG_DEBUG, "XML Data Not Set [%d:%d][target : %d][current : %d]", low, high, dataKey, (*ppData)->Key);
 			return -3;
 		}
 	}

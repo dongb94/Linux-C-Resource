@@ -26,6 +26,7 @@
 #define SKILL_BOOK_DATA_XML_PATH "./SkillBookData.xml"
 #define RANDOM_PICK_UP_DATA_XML_PATH "./RandomPickUpData.xml"
 #define RANDOM_PICK_UP_LIST_DATA_XML_PATH "./RandomPickUpListData.xml"
+#define ITEM_PACKAGE_SET_DATA_XML_PATH "./ItemPackageSetData.xml"
 extern char FILE_PATH[512];
 extern short DIR_PATH_LEN;
 extern bool printLog;

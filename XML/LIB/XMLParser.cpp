@@ -56,7 +56,7 @@ inline int XMLParser::OpenXmlFile(char* filePath) // 상대 경로
 
 	if(!m_fileInputStream.is_open())
 	{
-		printf(">>>>>>>>> OPEN XML FAIL : %s  <<<<\n", filePath);
+		printf("\t>>>!!! OPEN XML FAIL : %s  <<<<\n", filePath);
 		return -2;
 	}
 
