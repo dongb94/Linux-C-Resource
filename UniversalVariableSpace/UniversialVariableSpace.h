@@ -1,3 +1,16 @@
+/**
+ * @file UniversialVariableSpace.h
+ * @author donggeon byeon (dongb94@gmail.com)
+ * @brief 타이머에 사용할 범용 변수 공간.
+ * 변수 크기와 갯수에 상관없이 할당 후 키를 받음
+ * 변수정보에 대한 키로 변수 정보 열람
+ * @version 0.1
+ * @date 2022-04-29
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #ifndef __UNIVERSAL_VARIABLE_SPACE__
 #define __UNIVERSAL_VARIABLE_SPACE__
 
@@ -153,15 +166,11 @@ public:
 	CUniversalVariableSpace();
 	~CUniversalVariableSpace();
 
-	void 							GetData(int iUVIIndex);
 	pst_Universal_Variable_Buffer	GetBufferPtr()	{ return &m_stBuffer; }
 
 	int AddData(unsigned char size, char* data);
+	void GetData(int iUVIIndex);
 	int RemoveData(int iUVIIndex);
-
-	int RemoveIndex(pst_Universal_Variable_Info pstUVI);
-	int MemoryFree(int moveIndex, pst_Universal_Variable_Info pMoveUVI);
-	int SortList(int iUVIIndex);
 
 private:
 	st_Universal_Variable_Info	stUVIArray[MAX_UNIVERSAL_VARIABLE_INFO];
@@ -173,6 +182,10 @@ private:
 	int m_InfoCount;
 
 	st_Universal_Variable_Buffer	m_stBuffer;
+
+	int RemoveIndex(pst_Universal_Variable_Info pstUVI);
+	int MemoryFree(int moveIndex, pst_Universal_Variable_Info pMoveUVI);
+	int SortList(int iUVIIndex);
 };
 
 #endif

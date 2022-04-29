@@ -10,17 +10,13 @@ CUniversalVariableSpace::CUniversalVariableSpace()
 
 CUniversalVariableSpace::~CUniversalVariableSpace(){}
 
-void CUniversalVariableSpace::GetData(int iUVIIndex)
-{
-	pst_Universal_Variable_Info pstUVI = P_INFO(iUVIIndex);
-
-	memcpy(m_stBuffer.szBody, P_DATA(pstUVI->DataIndex), pstUVI->ucDataSize);
-	m_stBuffer.ucDataSize = 0;
-
-	return;
-}
-
-/// return dataInfo index
+/**
+ * @brief 변수를 범용 변수공간에 추가하고 인덱스 정보를 받음.
+ * 
+ * @param size 데이터의 크기
+ * @param data 데이터의 주소
+ * @return int dataInfo index
+ */ 
 int CUniversalVariableSpace::AddData(unsigned char size, char* data)
 {
 	if(size == 0) return INPUT_DATA_ERROR_SIZE_ZERO;
@@ -159,6 +155,16 @@ int CUniversalVariableSpace::AddData(unsigned char size, char* data)
 	return m_CurrentInfoIndex;
 }
 
+void CUniversalVariableSpace::GetData(int iUVIIndex)
+{
+	pst_Universal_Variable_Info pstUVI = P_INFO(iUVIIndex);
+
+	memcpy(m_stBuffer.szBody, P_DATA(pstUVI->DataIndex), pstUVI->ucDataSize);
+	m_stBuffer.ucDataSize = 0;
+
+	return;
+}
+
 int CUniversalVariableSpace::RemoveData(int iUVIIndex)
 {
 	return RemoveIndex(P_INFO(iUVIIndex));
@@ -186,8 +192,10 @@ int CUniversalVariableSpace::RemoveIndex(pst_Universal_Variable_Info pstUVI)
 	return 0;
 }
 
-/// 메모리 조각 모음 (빈 공간 제거)
-/// return 옮겨진 데이터의 마지막 인덱스
+/**
+ *  메모리 조각 모음 (빈 공간 제거)
+ * 	@return int 옮겨진 데이터의 마지막 인덱스
+*/
 int CUniversalVariableSpace::MemoryFree(int moveIndex, pst_Universal_Variable_Info pMoveUVI)
 {
 	memmove(P_DATA(moveIndex), P_DATA(DATA_FRONT_INDEX(pMoveUVI)), pMoveUVI->ucDataSize);
