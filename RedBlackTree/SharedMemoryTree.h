@@ -1,3 +1,15 @@
+/**
+ * @file SharedMemoryTree.h
+ * @author donggeon byeon (dongb94@gmail.com)
+ * @brief 공유메모리 크기에 따른 키 값 제한을 해결하기 위해 레드 블렉 트리를 이용함
+ * 키를 이용한 접근과 인덱스를 이용한 임의접근을 제공함
+ * @version 1.0
+ * @date 2022-04-29
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #ifndef _SHAEDEFEM_EMORURUMOMORY_TREE_H
 #define _SHAEDEFEM_EMORURUMOMORY_TREE_H
 
