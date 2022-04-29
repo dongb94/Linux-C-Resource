@@ -1,10 +1,15 @@
-#include "EventTimer.h"
-#include <sched.h>
+/**
+ * @file EventTimer.cpp
+ * @author donggeon byeon (dongb94@gmail.com)
+ * @version 1.12
+ * @date 2022-04-29
+ * 
+ */
 
+#include "EventTimer.h"
 
 #define GET_HASH_MEM(smHandle, key, pData) (Get_hashed_shm(&smHandle, key, (void**)&pData))
 #define NEW_HASH_MEM(smHandle, key, pData) (New_hashed_shm(&smHandle, key, (void**)&pData))
-
 
 bool EventTimerWheel::flag;
 USHORT EventTimerWheel::eventSerial;
@@ -26,7 +31,7 @@ EventTimerWheel::EventTimerWheel()
 	timer->removeUVS = RemoveUVSEvent;
 	timer->remove = RemoveEvent;
 	timer->getEvent = GetEvent;
-	timer->getCurrentTimeFormat = GetCurrentTimeUINT64;
+	timer->getCurrentTimeFormat = GetCurrentTimeFormat;
 	timer->getCurrentTimeTM = GetCurrentTimeTM;
 	timer->getCurrentSecondFromTime = GetCurrentSecondFromTime;
 	timer->getMillisecondFromCurrentTime = GetMillisecondFromCurrentTime;
@@ -81,7 +86,6 @@ EventTimerWheel::EventTimerWheel()
 				usleep(10000);
 			}
 		});
-		// thread::setScheduling(t, SCHED_FIFO, 10);
 		t.detach();
 	}
 	while (!m_start)
@@ -108,9 +112,6 @@ int EventTimerWheel::InitSharedMemory()
 		dAppLog(LOG_DEBUG, "Init Event Timer SharedMemory Error [res : %d]\n", res);
 		return res;
 	}
-
-	////////////////////////////////////////////
-	////////////////////////////////////////////
 
 	Init_hashed_shm_handle(&m_smTimerWheelHour, TIMER_WHEEL_SIZE + 1, sizeof(UINT32), TIMER_WHEEL_SIZE + 1, S_SSHM_EVENT_TIMEWHEEL_HOUR);
 	res = Init_hashed_shm(&m_smTimerWheelHour);
@@ -208,22 +209,27 @@ int EventTimerWheel::InitSharedMemory()
 	dAppLog(LOG_DEBUG, "Init Event Timer SharedMemory End");
 }
 
-/// return 즉시 실행 = 0, 실패 < 0, 성공 tid
+/**
+* @return 즉시 실행 = 0, 실패 < 0, 성공 tid 
+*/
 int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 millisecond, uint64 eventVar, bool repeat, int repeatCount, uint64 tid, bool overriding)
 {
 	return AddTimeOut(functionId, millisecond, eventVar, repeat, repeatCount, millisecond, tid, overriding);
 }
 
+/**
+ * @brief 실행 대기 시간과 반복 주기가 다를경우 사용
+ * @return 즉시 실행 = 0, 실패 < 0, 성공 tid 
+ */
 int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 eventVar, bool repeat, int repeatCount, uint64 repeatDelay, uint64 tid, bool overriding)
 {
 	int res;
 	EventStruct* newEvent;
 
-
 	if(tid == 0)
 	{
-		tid = eventSerial + 10000;
-		eventSerial = (eventSerial+1) % (TIMER_WHEEL_EVENT_SIZE-10000);
+		tid = eventSerial + FIXED_EVENT_SIZE;
+		eventSerial = (eventSerial+1) % (TIMER_WHEEL_EVENT_SIZE-FIXED_EVENT_SIZE);
 	}
 
 	res = GetEvent(tid, &newEvent);
@@ -241,7 +247,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 			break;
 		}
 		tid = (tid + 1) % TIMER_WHEEL_EVENT_SIZE;
-		if(tid == 0) tid = 10000;
+		if(tid == 0) tid = FIXED_EVENT_SIZE;
 
 		res = GetEvent(tid, &newEvent);
 		if(res < 0)
@@ -283,8 +289,8 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 	while(flag){usleep(1000);}
 	flag = true;
 
-	int hour = startTime / 3600000;
-	int minute = startTime / 60000;
+	int hour = startTime / MILLISECOND_PER_HOUR;
+	int minute = startTime / MILLISECOND_PER_MINUTE;
 	UINT32 *HeadKeyPointer = NULL;
 
 	if(hour != 0){
@@ -299,7 +305,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 		}
 
 		newEvent->leftCount = (hour-1) >> 3;	 // == hour / 8
-		newEvent->leftMilliSecond = (startTime % 3600000) + (minuteCurrent * 60000) + (secondCurrent * 1000 / TIMER_WHEEL_TICK_PER_SECOND);
+		newEvent->leftMilliSecond = (startTime % MILLISECOND_PER_HOUR) + (minuteCurrent * MILLISECOND_PER_MINUTE) + (secondCurrent * MILLISECOND / TIMER_WHEEL_TICK_PER_SECOND);
 	}
 	else if(minute != 0){
 		int minuteSlot = ((minute-1) + *minutePointer) & 0b111;
@@ -313,12 +319,12 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 		}
 
 		newEvent->leftCount = (minute-1) >> 3;
-		newEvent->leftMilliSecond = (startTime % 60000) + (secondCurrent * 1000 / TIMER_WHEEL_TICK_PER_SECOND);
+		newEvent->leftMilliSecond = (startTime % MILLISECOND_PER_MINUTE) + (secondCurrent * MILLISECOND / TIMER_WHEEL_TICK_PER_SECOND);
 
 		// dAppLog(LOG_DEBUG, " Add Time Tick [tid %lld][startTime %lld][fid %lld][MinuteSlot %d][leftCount %d][secondPointer %d]", tid, startTime, newEvent->functionId, minuteSlot, newEvent->leftCount, *secondPointer);
 	}
 	else{
-		int timeTick = startTime * TIMER_WHEEL_TICK_PER_SECOND / 1000;
+		int timeTick = startTime * TIMER_WHEEL_TICK_PER_SECOND / MILLISECOND;
 		int secondSlot = (timeTick + *secondPointer) & 0b111;
 
 		HeadKeyPointer = secondHead[secondSlot];
@@ -330,7 +336,7 @@ int EventTimerWheel::AddTimeOut(uint64 functionId, uint64 startTime, uint64 even
 		}
 
 		newEvent->leftCount = timeTick >> 3;
-		newEvent->leftMilliSecond = startTime % (1000 / TIMER_WHEEL_TICK_PER_SECOND);
+		newEvent->leftMilliSecond = startTime % (MILLISECOND / TIMER_WHEEL_TICK_PER_SECOND);
 
 		// dAppLog(LOG_DEBUG, " Add Time Tick [tid %lld][startTime %lld][fid %lld][timeTick %d][secondSlot %d][leftCount %d][secondPointer %d]", tid, startTime, newEvent->functionId, timeTick, secondSlot, newEvent->leftCount, *secondPointer);
 	}
@@ -729,7 +735,7 @@ UINT64 EventTimerWheel::GetLeftTime(uint64 tid)
 	return event->triggerTime - time(NULL);
 }
 
-UINT64 EventTimerWheel::GetCurrentTimeUINT64()
+UINT64 EventTimerWheel::GetCurrentTimeFormat()
 {
 	struct timeb m_time;
 	ftime(&m_time);
@@ -837,7 +843,7 @@ time_t EventTimerWheel::GetDayAfterResetType(UCHAR ResetType)
 	tm->tm_hour = 4;
 	tm->tm_min = 0;
 	tm->tm_sec = 0;
-	
+
 	if(CHECK_LEAP_YEAR(tm->tm_year))
 	{
 		days[1] = 29;

@@ -1,3 +1,12 @@
+/**
+ * @file EventTimer.h
+ * @author donggeon byeon (dongb94@gmail.com)
+ * @version 1.12
+ * @date 2022-04-29
+ * 
+ * Timing Wheel을 이용한 타이머
+ */
+
 #ifndef __EVENT_TIMER_WHEEL__
 #define __EVENT_TIMER_WHEEL__
 
@@ -17,25 +26,28 @@
 
 #define uint64 unsigned long long
 
-#define TIMER_WHEEL_TICK_PER_SECOND 10
-#define TIMER_WHEEL_TICK_TIME (1000/TIMER_WHEEL_TICK_PER_SECOND) // (millisecond) 1000의 약수가 아니면 오차 발생
-#define TIMER_WHEEL_SIZE 8
-#define TIMER_WHEEL_EVENT_SIZE 60000
-#define TIMER_WHEEL_EVENT_SIZE_HOUR 60000
-#define TIMER_WHEEL_EVENT_SIZE_MINUTE 10000
-#define TIMER_WHEEL_EVENT_SIZE_SECOND 10000
-
 #define TIME_DAY				86400
 #define TIME_HOUR				3600
 #define TIME_MINUTE				60
+
+#define MILLISECOND				1000
+#define MILLISECOND_PER_MINUTE	60000
+#define MILLISECOND_PER_HOUR	3600000
 #define MILLISECOND_PER_DAY		86400000
 #define MILLISECOND_PER_WEEK	604800000
+
+#define TIMER_WHEEL_TICK_PER_SECOND 10
+#define TIMER_WHEEL_TICK_TIME (MILLISECOND/TIMER_WHEEL_TICK_PER_SECOND) // (millisecond) 1000의 약수가 아니면 오차 발생
+#define TIMER_WHEEL_SIZE 		8
+#define TIMER_WHEEL_EVENT_SIZE	60000
+#define FIXED_EVENT_SIZE		10000
+
 
 #define	GET_TIMER_KEY(slot)	(((uint64)slot << 48)+1)
 
 #define CHECK_LEAP_YEAR(year) (((year+1900)%4==0 && (year+1900)%100!=0) || (year+1900)%400==0)
 
-#define MAKE_MINUTE_TO_SECOND(minute) (TIME_MINUTE * minute)
+#define MINUTE_TO_SECOND(minute) (TIME_MINUTE * minute)
 
 #define TID_RESET_DAILY		20
 #define TID_RESET_WEEK		21
@@ -60,6 +72,17 @@ struct EventStruct
 
 struct TimerRemoteControler
 {
+	/**
+	 * @param func 			함수ID
+	 * @param millisecond 	이벤트 지연 시간
+	 * @param eventVar 		이벤트 매개변수
+	 * @param repeat 		반복여부
+	 * @param repeatCount 	반복 횟수. -1 == 무한
+	 * @param tid 			Timer ID. 0 == 자동
+	 * @param overriding 	Timer ID 지정시 기존 이벤트 덮어쓰기 여부
+	 * @return 즉시 실행 = 0, 실패 < 0, 성공 = 타이머 이벤트 ID (TID)
+	 * @warning TID 10000이하는 지정이벤트
+	 */
 	int (*addTimeOut) (uint64 func, uint64 millisecond, uint64 eventVar, bool repeat, int repeatCount, uint64 tid, bool overriding);
 	int (*addTimeOutDelay) (uint64 func, uint64 startTime, uint64 eventVar, bool repeat, int repeatCount, uint64 repeatDelay, uint64 tid, bool overriding);
 
@@ -86,8 +109,10 @@ static bool m_start = false;
 
 static int days[12] = {31, 28, 31, 30, 31, 30, 31, 31 ,30 ,31 ,30 ,31};
 
-// 50ms 단위로 돌아가는 타이머 휠. keep alive 패킷, 핑퐁, 연결 지연등 타임아웃 이벤트.
-// 또는 서버에서 반복적으로 호출 되어야 하는 이벤트들을 관리 할 것임.
+/**
+ * 50ms 단위로 돌아가는 타이머 휠. keep alive 패킷, 연결 지연등 타임아웃 이벤트.
+ * 또는 서버에서 반복적으로 호출 되어야 하는 이벤트들을 관리.
+ */
 class EventTimerWheel
 {
 public :
@@ -108,7 +133,7 @@ public :
 
 	static UINT64 GetTriggerTime(uint64 tid);
 	static UINT64 GetLeftTime(uint64 tid);
-	static UINT64 GetCurrentTimeUINT64();
+	static UINT64 GetCurrentTimeFormat();
 	static tm* GetCurrentTimeTM();
 	static UINT64 GetCurrentSecondFromTime();
 	static UINT64 GetDayAfterValue(UCHAR value);
@@ -130,11 +155,6 @@ private :
 	st_HashedShmHandle m_smTimerWheelHour;
 	st_HashedShmHandle m_smTimerWheelMinute;
 	st_HashedShmHandle m_smTimerWheelSecond;
-
-	// // 카운트
-	// int hourValueNum[TIMER_WHEEL_SIZE];
-	// int minuteValueNum[TIMER_WHEEL_SIZE];
-	// int secondValueNum[TIMER_WHEEL_SIZE];
 
 	static UINT32 *hourHead[TIMER_WHEEL_SIZE], *minuteHead[TIMER_WHEEL_SIZE], *secondHead[TIMER_WHEEL_SIZE];
 	static UINT32 *hourPointer, *minutePointer, *secondPointer;
